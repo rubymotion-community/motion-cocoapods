@@ -4,9 +4,7 @@ motion-cocoapods allows RubyMotion projects to integrate with the CocoaPods depe
 
 == Requirements
 
-* CocoaPods.
-
-  $ sudo gem install cocoapods
+* CocoaPods (see http://cocoapods.org).
 
 * RubyMotion 1.0 or greater (see http://www.rubymotion.com).
 
