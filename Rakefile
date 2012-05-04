@@ -27,6 +27,13 @@ task :clean do
   FileUtils.rm_rf 'pkg'
 end
 
+desc "Install dependencies needed for development"
+task :bootstrap do
+  sh "git submodule update --init"
+  sh "bundle install"
+end
+
+desc "Run the specs"
 task :spec do
   sh "bundle exec bacon #{FileList['spec/**/*_spec.rb'].join(' ')}"
 end
