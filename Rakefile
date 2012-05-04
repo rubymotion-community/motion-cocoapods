@@ -23,8 +23,12 @@ Rake::GemPackageTask.new(GemSpec) do |pkg|
   pkg.need_tar = true
 end
 
-task :default => :gem
-
 task :clean do
   FileUtils.rm_rf 'pkg'
 end
+
+task :spec do
+  sh "bundle exec bacon #{FileList['spec/**/*_spec.rb'].join(' ')}"
+end
+
+task :default => :spec
