@@ -35,6 +35,7 @@ class CocoaPodsConfig
     @podfile.platform :ios
 
     Pod::Config.instance.silent = true
+    Pod::Config.instance.rootspec = @podfile
     Pod::Config.instance.instance_variable_set(:@project_pods_root, Pathname.new(File.join(config.project_dir, 'vendor')))
   end
 
