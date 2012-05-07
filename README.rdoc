@@ -34,13 +34,13 @@ That's all. The build system will properly download the given pods and their dep
 
 1. Setup a local development environment.
 
-  $ git clone git://github.com/HipByte/motion-cocoapods.git
-  $ cd motion-cocoapods
-  $ rake bootstrap
+     $ git clone git://github.com/HipByte/motion-cocoapods.git
+     $ cd motion-cocoapods
+     $ rake bootstrap
 
 2. Verify that all the tests are passing.
 
-  $ rake spec
+     $ rake spec
 
 3. Create your patch and send a pull-request[http://help.github.com/send-pull-requests/].
 
