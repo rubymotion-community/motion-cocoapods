@@ -43,10 +43,13 @@ class CocoaPodsConfig
     @podfile.dependency(*name_and_version_requirements, &block)
   end
 
+  def pods_installer
+    @installer ||= Pod::Installer.new(@podfile)
+  end
+
   def resolve!
-    installer = Pod::Installer.new(@podfile)
-    installer.install_dependencies!
-    specs = installer.build_specifications
+    pods_installer.install_dependencies!
+    specs = pods_installer.build_specifications
     header_paths = specs.map do |podspec|
       podspec.expanded_source_files.select do |p|
         File.extname(p) == '.h'
@@ -60,15 +63,17 @@ class CocoaPodsConfig
         # Remove the first part of the path which is the project directory.
         path.to_s.split('/')[1..-1].join('/')
       end
-   
+
       @config.vendor_project(podspec.pod_destroot, :static,
         :cflags => cflags,
         :source_files => source_files)
 
       ldflags = podspec.xcconfig.to_hash['OTHER_LDFLAGS']
       if ldflags
-        @config.frameworks += (ldflags.scan(/-framework\s+([^\s]+)/)[0] or [])
-        @config.libs += (ldflags.scan(/-l([^\s]+)/)[0] or []).map { |n| "/usr/lib/lib#{n}.dylib" }
+        @config.frameworks.concat(ldflags.scan(/-framework\s+([^\s]+)/).flatten)
+        @config.frameworks.uniq!
+        @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |n| "/usr/lib/lib#{n}.dylib" })
+        @config.libs.uniq!
       end
 
 =begin

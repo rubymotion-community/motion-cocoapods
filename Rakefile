@@ -38,4 +38,9 @@ task :spec do
   sh "bundle exec bacon #{FileList['spec/**/*_spec.rb'].join(' ')}"
 end
 
+desc "Run specs automatically"
+task :kick do
+  sh "bundle exec kicker -c -e 'rake spec'"
+end
+
 task :default => :spec
