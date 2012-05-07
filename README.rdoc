@@ -29,6 +29,22 @@ motion-cocoapods allows RubyMotion projects to integrate with the CocoaPods depe
 
 That's all. The build system will properly download the given pods and their dependencies, build them and link them to your application executable.
 
+
+== Contribute
+
+1. Setup a local development environment.
+
+  $ git clone git://github.com/HipByte/motion-cocoapods.git
+  $ cd motion-cocoapods
+  $ rake bootstrap
+
+2. Verify that all the tests are passing.
+
+  $ rake spec
+
+3. Create your patch and send a pull-request[http://help.github.com/send-pull-requests/].
+
+
 == License
 
   Copyright (c) 2012, Laurent Sansonetti <lrz@hipbyte.com>
