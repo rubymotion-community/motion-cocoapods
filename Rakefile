@@ -22,7 +22,7 @@ end
 
 desc "Run specs automatically"
 task :kick do
-  sh "bundle exec kicker -c -e 'rake spec'"
+  sh "kicker -c -e 'rake spec'"
 end
 
 task :default => :spec

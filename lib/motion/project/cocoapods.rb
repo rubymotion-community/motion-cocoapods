@@ -86,9 +86,9 @@ module Motion::Project
 
         ldflags = podspec.xcconfig.to_hash['OTHER_LDFLAGS']
         if ldflags
-          @config.frameworks.concat(ldflags.scan(/-framework\s+([^\s]+)/).flatten)
+          @config.frameworks.concat(ldflags.scan(/-framework\s+([^\s]+)/).map { |m| m[0] })
           @config.frameworks.uniq!
-          @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |n| "/usr/lib/lib#{n}.dylib" })
+          @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |m| "/usr/lib/lib#{m[0]}.dylib" })
           @config.libs.uniq!
         end
 
