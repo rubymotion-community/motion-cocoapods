@@ -28,76 +28,80 @@ end
 
 require 'cocoapods'
 
-class CocoaPodsConfig
-  def initialize(config)
-    @config = config
-    @podfile = Pod::Podfile.new {}
-    @podfile.platform :ios
+module Motion::Project
+  class Config
+    variable :pods
 
-    Pod::Config.instance.silent = true
-    Pod::Config.instance.rootspec = @podfile
-    Pod::Config.instance.instance_variable_set(:@project_pods_root, Pathname.new(File.join(config.project_dir, 'vendor')))
+    def pods(&block)
+      @pods ||= Motion::Project::CocoaPods.new(self)
+      if block
+        @pods.instance_eval(&block)
+        @pods.resolve!
+      end
+      @pods
+    end
   end
 
-  def dependency(*name_and_version_requirements, &block)
-    @podfile.dependency(*name_and_version_requirements, &block)
-  end
+  class CocoaPods
+    VERSION = '1.0.0'
 
-  def pods_installer
-    @installer ||= Pod::Installer.new(@podfile)
-  end
+    def initialize(config)
+      @config = config
+      @podfile = Pod::Podfile.new {}
+      @podfile.platform :ios
 
-  def resolve!
-    pods_installer.install_dependencies!
-    specs = pods_installer.build_specifications
-    header_paths = specs.map do |podspec|
-      podspec.expanded_source_files.select do |p|
-        File.extname(p) == '.h'
-      end.map do |p|
-        "-I\"" + File.expand_path(File.join('./vendor', File.dirname(p))) + "\""
-      end
-    end.flatten.join(' ')
-    specs.each do |podspec|
-     cflags = (podspec.compiler_flags or '') + ' ' + header_paths
-      source_files = podspec.expanded_source_files.map do |path|
-        # Remove the first part of the path which is the project directory.
-        path.to_s.split('/')[1..-1].join('/')
-      end
+      Pod::Config.instance.silent = true
+      Pod::Config.instance.rootspec = @podfile
+      Pod::Config.instance.instance_variable_set(:@project_pods_root, Pathname.new(File.join(config.project_dir, 'vendor')))
+    end
 
-      @config.vendor_project(podspec.pod_destroot, :static,
-        :cflags => cflags,
-        :source_files => source_files)
+    def dependency(*name_and_version_requirements, &block)
+      @podfile.dependency(*name_and_version_requirements, &block)
+    end
 
-      ldflags = podspec.xcconfig.to_hash['OTHER_LDFLAGS']
-      if ldflags
-        @config.frameworks.concat(ldflags.scan(/-framework\s+([^\s]+)/).flatten)
-        @config.frameworks.uniq!
-        @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |n| "/usr/lib/lib#{n}.dylib" })
-        @config.libs.uniq!
-      end
+    def pods_installer
+      @installer ||= Pod::Installer.new(@podfile)
+    end
+
+    def resolve!
+      pods_installer.install_dependencies!
+      specs = pods_installer.build_specifications
+      header_paths = specs.map do |podspec|
+        podspec.expanded_source_files.select do |p|
+          File.extname(p) == '.h'
+        end.map do |p|
+          "-I\"" + File.expand_path(File.join('./vendor', File.dirname(p))) + "\""
+        end
+      end.flatten.join(' ')
+      specs.each do |podspec|
+       cflags = (podspec.compiler_flags or '') + ' ' + header_paths
+        source_files = podspec.expanded_source_files.map do |path|
+          # Remove the first part of the path which is the project directory.
+          path.to_s.split('/')[1..-1].join('/')
+        end
+
+        @config.vendor_project(podspec.pod_destroot, :static,
+          :cflags => cflags,
+          :source_files => source_files)
+
+        ldflags = podspec.xcconfig.to_hash['OTHER_LDFLAGS']
+        if ldflags
+          @config.frameworks.concat(ldflags.scan(/-framework\s+([^\s]+)/).flatten)
+          @config.frameworks.uniq!
+          @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |n| "/usr/lib/lib#{n}.dylib" })
+          @config.libs.uniq!
+        end
 
 =begin
-      # Remove .h files that are not covered in the podspec, to avoid
-      # future preprocessor #include collisions.
-      headers_to_ignore = (Dir.chdir(podspec.pod_destroot) do
-        Dir.glob('*/**/*.h')
-      end) - source_files.select { |p| File.extname(p) == '.h' }
-p headers_to_ignore,source_files.select { |p| File.extname(p) == '.h' } ,:ok
-      #headers_to_ignore.each { |p| FileUtils.rm_rf File.join(podspec.pod_destroot, p) }
+        # Remove .h files that are not covered in the podspec, to avoid
+        # future preprocessor #include collisions.
+        headers_to_ignore = (Dir.chdir(podspec.pod_destroot) do
+          Dir.glob('*/**/*.h')
+        end) - source_files.select { |p| File.extname(p) == '.h' }
+  p headers_to_ignore,source_files.select { |p| File.extname(p) == '.h' } ,:ok
+        #headers_to_ignore.each { |p| FileUtils.rm_rf File.join(podspec.pod_destroot, p) }
 =end
+      end
     end
   end
 end
-
-module Motion; module Project; class Config
-  variable :pods
-
-  def pods(&block)
-    @pods ||= CocoaPodsConfig.new(self)
-    if block
-      @pods.instance_eval(&block)
-      @pods.resolve!
-    end
-    @pods
-  end
-end; end; end
