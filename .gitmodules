@@ -4,3 +4,6 @@
 [submodule "spec/fixtures/ASIHTTPRequest"]
 	path = spec/fixtures/ASIHTTPRequest
 	url = git://github.com/pokeb/asi-http-request.git
+[submodule "spec/fixtures/RestKitTest"]
+	path = spec/fixtures/RestKitTest
+	url = git://github.com/alloy/RestKitTest.git
