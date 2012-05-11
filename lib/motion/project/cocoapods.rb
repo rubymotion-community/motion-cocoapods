@@ -65,6 +65,10 @@ module Motion::Project
       @podfile.dependency(*name_and_version_requirements, &block)
     end
 
+    def post_install(&block)
+      @podfile.post_install(&block)
+    end
+
     def pods_installer
       @installer ||= Pod::Installer.new(@podfile)
     end

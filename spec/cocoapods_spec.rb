@@ -9,20 +9,30 @@ end; end
 describe "CocoaPodsConfig" do
   extend SpecHelper::TemporaryDirectory
 
+  def podfile=(podfile); @podfile = podfile; end
+  def installer=(installer); @installer = installer; end
+  def installer_from_post_install_hook=(installer); @installer_from_post_install_hook = installer; end
+
   before do
     #ENV['COCOAPODS_VERBOSE'] = '1'
 
     Pod::Config.instance.repos_dir = ROOT + 'spec/fixtures/spec-repos'
 
-    podfile = nil
+    context = self
 
     @config = Motion::Project::Config.new(temporary_directory.to_s, :development)
     @config.instance_eval do
       pods do
-        podfile = @podfile
+        context.podfile = @podfile
 
         dependency 'Reachability', '2.0.4' # the one that comes with ASIHTTPRequest
         dependency 'ASIHTTPRequest', '1.8.1'
+
+        post_install do |installer|
+          context.installer_from_post_install_hook = installer
+        end
+
+        context.installer = pods_installer
 
         if pods_installer.respond_to?(:dependency_specifications)
           specs = pods_installer.dependency_specifications
@@ -34,8 +44,6 @@ describe "CocoaPodsConfig" do
         spec.libraries = 'z.1', 'xml2'
       end
     end
-
-    @podfile = podfile
   end
 
   it "installs the Pods to vendor/Pods" do
@@ -66,5 +74,9 @@ describe "CocoaPodsConfig" do
   it "adds all the required frameworks and libraries" do
     @config.frameworks.sort.should == %w{ CFNetwork CoreGraphics Foundation MobileCoreServices SystemConfiguration UIKit }
     @config.libs.sort.should == %w{ /usr/lib/libxml2.dylib /usr/lib/libz.1.dylib }
+  end
+
+  it "runs the pos_install hook" do
+    @installer_from_post_install_hook.should == @installer
   end
 end
