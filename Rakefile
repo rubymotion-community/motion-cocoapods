@@ -17,7 +17,7 @@ end
 
 desc "Run the specs"
 task :spec do
-  sh "bundle exec bacon #{FileList['spec/**/*_spec.rb'].join(' ')}"
+  sh "bundle exec bacon #{FileList['spec/*_spec.rb'].join(' ')}"
 end
 
 desc "Run specs automatically"
