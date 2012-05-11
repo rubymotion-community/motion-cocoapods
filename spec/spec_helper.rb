@@ -46,20 +46,57 @@ module SpecHelper
 end
 
 require 'cocoapods/installer'
+# Here we override the `source' of the pod specifications to point to the integration fixtures.
 module Pod
   class Installer
-    alias_method :original_dependent_specifications, :dependent_specifications
-    # Here we override the `source' of the pod specifications to point to the integration fixtures.
-    def dependent_specifications
-      @dependent_specifications ||= original_dependent_specifications
-      @dependent_specifications.each do |spec|
-        unless spec.part_of_other_pod?
-          source = spec.source
-          source[:git] = (ROOT + "spec/fixtures/#{spec.name}").to_s
-          spec.source = source
+    if Pod::VERSION == '0.5.1'
+
+      alias_method :original_dependent_specifications, :dependent_specifications
+      def dependent_specifications
+        @dependent_specifications ||= original_dependent_specifications
+        @dependent_specifications.each do |spec|
+          unless spec.part_of_other_pod?
+            source = spec.source
+            source[:git] = (ROOT + "spec/fixtures/#{spec.name}").to_s
+            spec.source = source
+          end
+        end
+        @dependent_specifications
+      end
+
+    else
+
+      alias_method :original_specs_by_target, :specs_by_target
+      def specs_by_target
+        @specs_by_target ||= original_specs_by_target.tap do |hash|
+          hash.values.flatten.each do |spec|
+            unless spec.part_of_other_pod?
+              source = spec.source
+              source[:git] = (ROOT + "spec/fixtures/#{spec.name}").to_s
+              spec.source = source
+            end
+          end
         end
       end
-      @dependent_specifications
+
+    end
+  end
+end
+
+
+module SpecHelper
+  class Installer < Pod::Installer
+    # Here we override the `source' of the pod specifications to point to the integration fixtures.
+    def specs_by_target
+      @specs_by_target ||= super.tap do |hash|
+        hash.values.flatten.each do |spec|
+          unless spec.part_of_other_pod?
+            source = spec.source
+            source[:git] = SpecHelper.fixture("integration/#{spec.name}").to_s
+            spec.source = source
+          end
+        end
+      end
     end
   end
 end

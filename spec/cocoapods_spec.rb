@@ -14,17 +14,28 @@ describe "CocoaPodsConfig" do
 
     Pod::Config.instance.repos_dir = ROOT + 'spec/fixtures/spec-repos'
 
+    podfile = nil
+
     @config = Motion::Project::Config.new(temporary_directory.to_s, :development)
     @config.instance_eval do
       pods do
+        podfile = @podfile
+
         dependency 'Reachability', '2.0.4' # the one that comes with ASIHTTPRequest
         dependency 'ASIHTTPRequest', '1.8.1'
 
-        spec = pods_installer.target_installers.first.build_specifications.find { |spec| spec.name == 'ASIHTTPRequest' }
+        if pods_installer.respond_to?(:dependency_specifications)
+          specs = pods_installer.dependency_specifications
+        else
+          specs = pods_installer.target_installers.first.build_specifications
+        end
+        spec = specs.find { |spec| spec.name == 'ASIHTTPRequest' }
         # Adding an extra library purely for testing purposes.
         spec.libraries = 'z.1', 'xml2'
       end
     end
+
+    @podfile = podfile
   end
 
   it "installs the Pods to vendor/Pods" do
@@ -32,7 +43,13 @@ describe "CocoaPodsConfig" do
   end
 
   it "configures CocoaPods to resolve dependency files for the iOS platform" do
-    Pod::Config.instance.rootspec.platform.should == :ios
+    if Pod::Config.instance.respond_to?(:rootspec)
+      # CocoaPods 0.5.1 backward compatibility
+      Pod::Config.instance.rootspec.platform.should == :ios
+      @podfile.platform.should == :ios
+    else
+      @podfile.target_definitions[:default].platform.should == :ios
+    end
   end
 
   it "writes Podfile.lock to vendor/" do

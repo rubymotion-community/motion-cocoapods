@@ -56,7 +56,8 @@ module Motion::Project
       else
         cp_config.silent = true
       end
-      cp_config.rootspec = @podfile
+      cp_config.rootspec = @podfile if cp_config.respond_to?(:rootspec) # CocoaPods 0.5.x backward compatibility
+      cp_config.integrate_targets = false if cp_config.respond_to?(:integrate_targets) # CocoaPods 0.6 forward compatibility
       cp_config.project_root = Pathname.new(config.project_dir) + 'vendor'
     end
 
@@ -80,7 +81,12 @@ module Motion::Project
       )
 
       xcconfig = @installer.target_installers.find do |target_installer|
-        target_installer.definition.name == :default
+        if target_installer.respond_to?(:definition)
+          target_installer.definition.name == :default
+        else
+          # CocoaPods 0.6 forward compatibility
+          target_installer.target_definition.name == :default
+        end
       end.xcconfig
 
       if ldflags = xcconfig.to_hash['OTHER_LDFLAGS']

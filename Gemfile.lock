@@ -14,3 +14,4 @@ DEPENDENCIES
   bacon
   cocoapods
   rake
+  xcodeproj
