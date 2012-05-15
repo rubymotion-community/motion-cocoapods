@@ -43,7 +43,7 @@ module Motion::Project
   end
 
   class CocoaPods
-    VERSION = '1.0.1'
+    VERSION = '1.0.2'
 
     def initialize(config)
       @config = config
