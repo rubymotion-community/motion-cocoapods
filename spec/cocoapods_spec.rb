@@ -21,6 +21,7 @@ describe "CocoaPodsConfig" do
     context = self
 
     @config = Motion::Project::Config.new(temporary_directory.to_s, :development)
+    @config.deployment_target = '5.0'
     @config.instance_eval do
       pods do
         context.podfile = @podfile
@@ -79,4 +80,14 @@ describe "CocoaPodsConfig" do
   it "runs the pos_install hook" do
     @installer_from_post_install_hook.should == @installer
   end
+  
+  it "pods deployment target should equal to project deployment target" do  
+    if Pod::Config.instance.respond_to?(:rootspec)
+      # CocoaPods 0.5.1 backward compatibility
+      Pod::Config.instance.rootspec.platform.options[:deployment_target].should == '5.0'
+    else
+      @installer.config.podfile.target_definitions[:default].platform.deployment_target.to_s.should == '5.0'
+    end
+  end
+  
 end
