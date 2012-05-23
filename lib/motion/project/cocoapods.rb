@@ -48,7 +48,7 @@ module Motion::Project
     def initialize(config)
       @config = config
       @podfile = Pod::Podfile.new {}
-      @podfile.platform :ios
+      @podfile.platform :ios, :deployment_target => config.deployment_target
 
       cp_config = Pod::Config.instance
       if ENV['COCOAPODS_VERBOSE']
@@ -76,7 +76,15 @@ module Motion::Project
     # For now we only support one Pods target, this will have to be expanded
     # once we work on more spec support.
     def install!
-      pods_installer.install!
+      @installer = pods_installer
+
+      # CocoaPods 0.5.x backward compatibility
+      if @config.deployment_target && @installer.project.respond_to?(:build_configuration)
+        @installer.project.build_configuration("Debug").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"]   = @config.deployment_target
+        @installer.project.build_configuration("Release").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"] = @config.deployment_target
+      end
+
+      @installer.install!
 
       @config.vendor_project('vendor/Pods', :xcode,
         :target => 'Pods',
