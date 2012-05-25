@@ -16,6 +16,7 @@ motion-cocoapods allows RubyMotion projects to integrate with the CocoaPods depe
 
 1. Edit the +Rakefile+ of your RubyMotion project and add the following require line.
 
+     require 'rubygems'
      require 'motion-cocoapods'
 
 2. Still in the +Rakefile+, set your dependencies using the same language as you would do in Podfiles.
