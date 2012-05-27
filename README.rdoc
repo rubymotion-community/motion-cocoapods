@@ -30,6 +30,10 @@ motion-cocoapods allows RubyMotion projects to integrate with the CocoaPods depe
 
 That's all. The build system will properly download the given pods and their dependencies, build them and link them to your application executable.
 
+NOTE: By default the output of CocoaPods doing its work is silenced. If, however, you would like to see the output, you can set the +COCOAPODS_VERBOSE+ env variable. E.g.
+
+    $ env COCOAPODS_VERBOSE=1 rake
+
 
 == Contribute
 
