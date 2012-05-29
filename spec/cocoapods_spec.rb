@@ -77,11 +77,11 @@ describe "CocoaPodsConfig" do
     @config.libs.sort.should == %w{ /usr/lib/libxml2.dylib /usr/lib/libz.1.dylib }
   end
 
-  it "runs the pos_install hook" do
+  it "runs the post_install hook" do
     @installer_from_post_install_hook.should == @installer
   end
-  
-  it "pods deployment target should equal to project deployment target" do  
+
+  it "pods deployment target should equal to project deployment target" do
     if Pod::Config.instance.respond_to?(:rootspec)
       # CocoaPods 0.5.1 backward compatibility
       Pod::Config.instance.rootspec.platform.options[:deployment_target].should == '5.0'
