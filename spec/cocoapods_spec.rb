@@ -15,6 +15,7 @@ describe "CocoaPodsConfig" do
 
   before do
     #ENV['COCOAPODS_VERBOSE'] = '1'
+    ENV['COCOAPODS_NO_UPDATE'] = '1'
 
     Pod::Config.instance.repos_dir = ROOT + 'spec/fixtures/spec-repos'
 

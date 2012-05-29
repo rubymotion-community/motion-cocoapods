@@ -35,6 +35,9 @@ module Motion::Project
     def pods(&block)
       @pods ||= Motion::Project::CocoaPods.new(self)
       if block
+        unless ENV['COCOAPODS_NO_UPDATE']
+          Pod::Command::Repo.new(Pod::Command::ARGV.new(["update"])).run
+        end
         @pods.instance_eval(&block)
         @pods.install!
       end

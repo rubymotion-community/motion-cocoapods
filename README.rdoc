@@ -1,6 +1,8 @@
 = motion-cocoapods
 
-motion-cocoapods allows RubyMotion projects to integrate with the CocoaPods dependency manager.
+motion-cocoapods allows RubyMotion projects to integrate with the CocoaPods
+dependency manager.
+
 
 == Requirements
 
@@ -8,18 +10,22 @@ motion-cocoapods allows RubyMotion projects to integrate with the CocoaPods depe
 
 * RubyMotion 1.0 or greater (see http://www.rubymotion.com).
 
+
 == Installation
 
   $ sudo gem install motion-cocoapods
 
+
 == Setup
 
-1. Edit the +Rakefile+ of your RubyMotion project and add the following require line.
+1. Edit the +Rakefile+ of your RubyMotion project and add the following require
+   line.
 
      require 'rubygems'
      require 'motion-cocoapods'
 
-2. Still in the +Rakefile+, set your dependencies using the same language as you would do in Podfiles.
+2. Still in the +Rakefile+, set your dependencies using the same language as
+   you would do in Podfiles.
 
      Motion::Project::App.setup do |app|
        # ...
@@ -28,11 +34,22 @@ motion-cocoapods allows RubyMotion projects to integrate with the CocoaPods depe
        end
      end
 
-That's all. The build system will properly download the given pods and their dependencies, build them and link them to your application executable.
+That's all. The build system will properly download the given pods and their
+dependencies, build them and link them to your application executable.
 
-NOTE: By default the output of CocoaPods doing its work is silenced. If, however, you would like to see the output, you can set the +COCOAPODS_VERBOSE+ env variable. E.g.
+
+== Options
+
+By default the output of CocoaPods doing its work is silenced. If, however, you
+would like to see the output, you can set the +COCOAPODS_VERBOSE+ env variable.
 
     $ env COCOAPODS_VERBOSE=1 rake
+
+On every build, CocoaPods will try to update the specification repos in
++~/.cocoapods+, if you want to skip this then set the +COCOAPODS_NO_UPDATE+ env
+variable.
+
+    $ env COCOAPODS_NO_UPDATE=1 rake
 
 
 == Contribute
