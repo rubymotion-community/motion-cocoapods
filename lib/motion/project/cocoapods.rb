@@ -27,6 +27,7 @@ unless defined?(Motion::Project::Config)
 end
 
 require 'cocoapods'
+require 'yaml'
 
 module Motion::Project
   class Config
@@ -46,7 +47,8 @@ module Motion::Project
   end
 
   class CocoaPods
-    VERSION = '1.0.3'
+    VERSION   = '1.0.3'
+    PODS_ROOT = 'vendor/Pods'
 
     def initialize(config)
       @config = config
@@ -79,16 +81,24 @@ module Motion::Project
     # For now we only support one Pods target, this will have to be expanded
     # once we work on more spec support.
     def install!
-      @installer = pods_installer
-
-      unless cocoapods_v06_and_higher?
-        @installer.project.build_configuration("Debug").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"]   = @config.deployment_target
-        @installer.project.build_configuration("Release").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"] = @config.deployment_target
+      if bridgesupport_file.exist? && pods_installer.lock_file.exist?
+        installed_pods_before = installed_pods
       end
 
-      @installer.install!
+      unless cocoapods_v06_and_higher?
+        pods_installer.project.build_configuration("Debug").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"]   = @config.deployment_target
+        pods_installer.project.build_configuration("Release").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"] = @config.deployment_target
+      end
 
-      @config.vendor_project('vendor/Pods', :xcode,
+      pods_installer.install!
+
+      # Let RubyMotion re-generate the BridgeSupport file whenever the list of
+      # installed pods changes.
+      if bridgesupport_file.exist? && installed_pods_before && installed_pods_before != installed_pods
+        bridgesupport_file.delete
+      end
+
+      @config.vendor_project(PODS_ROOT, :xcode,
         :target => 'Pods',
         :headers_dir => 'Headers',
         :products => %w{ libPods.a }
@@ -102,7 +112,13 @@ module Motion::Project
       end
     end
 
-    private
+    def installed_pods
+      YAML.load(pods_installer.lock_file.read)['PODS']
+    end
+
+    def bridgesupport_file
+      Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.bridgesupport'
+    end
 
     def pods_xcconfig
       pods_installer.target_installers.find do |target_installer|

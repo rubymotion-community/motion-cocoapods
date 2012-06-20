@@ -79,5 +79,25 @@ describe "CocoaPodsConfig" do
       Pod::Config.instance.rootspec.platform.options[:deployment_target].should == '5.0'
     end
   end
-  
+
+  it "removes Pods.bridgesupport whenever the PODS section of Podfile.lock changes" do
+    bs_file = @config.pods.bridgesupport_file
+    bs_file.open('w') { |f| f.write 'ORIGINAL CONTENT' }
+    lock_file = @installer.lock_file
+
+    # Even if another section changes, it doesn't remove Pods.bridgesupport
+    contents = YAML.load(lock_file.read)
+    contents['DEPENDENCIES'].clear
+    lock_file.open('w') { |f| f.write contents.to_yaml }
+    @config.pods.install!
+    bs_file.read.should == 'ORIGINAL CONTENT'
+
+    # If the PODS section changes, then Pods.bridgesupport is removed
+    contents = YAML.load(lock_file.read)
+    contents['PODS'].delete_at(-1)
+    lock_file.open('w') { |f| f.write contents.to_yaml }
+    @config.pods.install!
+    bs_file.should.not.exist
+  end
+
 end
