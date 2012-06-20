@@ -28,7 +28,11 @@ describe "CocoaPodsConfig" do
         context.podfile = @podfile
 
         dependency 'Reachability', '2.0.5'
-        dependency 'ASIWebPageRequest', '1.8.1'
+        if Motion::Project::CocoaPods.cocoapods_v06_and_higher?
+          dependency 'ASIHTTPRequest/ASIWebPageRequest', '1.8.1'
+        else
+          dependency 'ASIWebPageRequest', '1.8.1'
+        end
 
         post_install do |installer|
           context.installer_from_post_install_hook = installer
