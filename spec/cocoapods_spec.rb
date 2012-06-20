@@ -27,23 +27,14 @@ describe "CocoaPodsConfig" do
       pods do
         context.podfile = @podfile
 
-        dependency 'Reachability', '2.0.4' # the one that comes with ASIHTTPRequest
-        dependency 'ASIHTTPRequest', '1.8.1'
+        dependency 'Reachability', '2.0.5'
+        dependency 'ASIWebPageRequest', '1.8.1'
 
         post_install do |installer|
           context.installer_from_post_install_hook = installer
         end
 
         context.installer = pods_installer
-
-        if pods_installer.respond_to?(:dependency_specifications)
-          specs = pods_installer.dependency_specifications
-        else
-          specs = pods_installer.target_installers.first.build_specifications
-        end
-        spec = specs.find { |spec| spec.name == 'ASIHTTPRequest' }
-        # Adding an extra library purely for testing purposes.
-        spec.libraries = 'z.1', 'xml2'
       end
     end
   end
@@ -53,12 +44,11 @@ describe "CocoaPodsConfig" do
   end
 
   it "configures CocoaPods to resolve dependency files for the iOS platform" do
-    if Pod::Config.instance.respond_to?(:rootspec)
-      # CocoaPods 0.5.1 backward compatibility
+    if Motion::Project::CocoaPods.cocoapods_v06_and_higher?
+      @podfile.target_definitions[:default].platform.should == :ios
+    else
       Pod::Config.instance.rootspec.platform.should == :ios
       @podfile.platform.should == :ios
-    else
-      @podfile.target_definitions[:default].platform.should == :ios
     end
   end
 
@@ -75,7 +65,7 @@ describe "CocoaPodsConfig" do
 
   it "adds all the required frameworks and libraries" do
     @config.frameworks.sort.should == %w{ CFNetwork CoreGraphics Foundation MobileCoreServices SystemConfiguration UIKit }
-    @config.libs.sort.should == %w{ /usr/lib/libxml2.dylib /usr/lib/libz.1.dylib }
+    @config.libs.sort.should == %w{ /usr/lib/libxml2.2.7.3.dylib /usr/lib/libz.1.dylib }
   end
 
   it "runs the post_install hook" do
@@ -83,11 +73,10 @@ describe "CocoaPodsConfig" do
   end
 
   it "pods deployment target should equal to project deployment target" do
-    if Pod::Config.instance.respond_to?(:rootspec)
-      # CocoaPods 0.5.1 backward compatibility
-      Pod::Config.instance.rootspec.platform.options[:deployment_target].should == '5.0'
-    else
+    if Motion::Project::CocoaPods.cocoapods_v06_and_higher?
       @installer.config.podfile.target_definitions[:default].platform.deployment_target.to_s.should == '5.0'
+    else
+      Pod::Config.instance.rootspec.platform.options[:deployment_target].should == '5.0'
     end
   end
   

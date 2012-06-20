@@ -59,8 +59,8 @@ module Motion::Project
       else
         cp_config.silent = true
       end
-      cp_config.rootspec = @podfile if cp_config.respond_to?(:rootspec) # CocoaPods 0.5.x backward compatibility
-      cp_config.integrate_targets = false if cp_config.respond_to?(:integrate_targets) # CocoaPods 0.6 forward compatibility
+      cp_config.rootspec = @podfile unless cocoapods_v06_and_higher?
+      cp_config.integrate_targets = false if cocoapods_v06_and_higher?
       cp_config.project_root = Pathname.new(config.project_dir) + 'vendor'
     end
 
@@ -81,8 +81,7 @@ module Motion::Project
     def install!
       @installer = pods_installer
 
-      # CocoaPods 0.5.x backward compatibility
-      if @config.deployment_target && @installer.project.respond_to?(:build_configuration)
+      unless cocoapods_v06_and_higher?
         @installer.project.build_configuration("Debug").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"]   = @config.deployment_target
         @installer.project.build_configuration("Release").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"] = @config.deployment_target
       end
@@ -95,21 +94,33 @@ module Motion::Project
         :products => %w{ libPods.a }
       )
 
-      xcconfig = @installer.target_installers.find do |target_installer|
-        if target_installer.respond_to?(:definition)
-          target_installer.definition.name == :default
-        else
-          # CocoaPods 0.6 forward compatibility
-          target_installer.target_definition.name == :default
-        end
-      end.xcconfig
-
-      if ldflags = xcconfig.to_hash['OTHER_LDFLAGS']
+      if ldflags = pods_xcconfig.to_hash['OTHER_LDFLAGS']
         @config.frameworks.concat(ldflags.scan(/-framework\s+([^\s]+)/).map { |m| m[0] })
         @config.frameworks.uniq!
         @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |m| "/usr/lib/lib#{m[0]}.dylib" })
         @config.libs.uniq!
       end
+    end
+
+    private
+
+    def pods_xcconfig
+      pods_installer.target_installers.find do |target_installer|
+        if cocoapods_v06_and_higher?
+          target_installer.target_definition.name == :default
+        else
+          target_installer.definition.name == :default
+        end
+      end.xcconfig
+    end
+
+    def cocoapods_v06_and_higher?
+      self.class.cocoapods_v06_and_higher?
+    end
+
+    def self.cocoapods_v06_and_higher?
+      # last 0.5.x version of CP
+      Gem::Version.new(Pod::VERSION) > Gem::Version.new('0.5.1')
     end
   end
 end
