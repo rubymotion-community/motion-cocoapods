@@ -47,7 +47,7 @@ module Motion::Project
   end
 
   class CocoaPods
-    VERSION   = '1.0.4'
+    VERSION   = '1.0.5'
     PODS_ROOT = 'vendor/Pods'
 
     def initialize(config)
