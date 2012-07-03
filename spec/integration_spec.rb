@@ -11,6 +11,6 @@ describe "CocoaPods integration" do
 
   it "successfully builds an application" do
     ENV.delete('COCOAPODS_NO_UPDATE')
-    system("cd '#{@project_dir}' && rake build:simulator").should == true
+    system("cd '#{@project_dir}' && rake build:simulator --trace").should == true
   end
 end

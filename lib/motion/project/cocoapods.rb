@@ -63,7 +63,7 @@ module Motion::Project
       end
       cp_config.rootspec = @podfile unless cocoapods_v06_and_higher?
       cp_config.integrate_targets = false if cocoapods_v06_and_higher?
-      cp_config.project_root = Pathname.new(config.project_dir) + 'vendor'
+      cp_config.project_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
     end
 
     def dependency(*name_and_version_requirements, &block)
