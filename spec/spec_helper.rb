@@ -49,35 +49,16 @@ require 'cocoapods/installer'
 # Here we override the `source' of the pod specifications to point to the integration fixtures.
 module Pod
   class Installer
-    if Motion::Project::CocoaPods.cocoapods_v06_and_higher?
-
-      alias_method :original_specs_by_target, :specs_by_target
-      def specs_by_target
-        @specs_by_target ||= original_specs_by_target.tap do |hash|
-          hash.values.flatten.each do |spec|
-            next if spec.subspec?
-            source = spec.source
-            source[:git] = (ROOT + "spec/fixtures/#{spec.name}").to_s
-            spec.source = source
-          end
+    alias_method :original_specs_by_target, :specs_by_target
+    def specs_by_target
+      @specs_by_target ||= original_specs_by_target.tap do |hash|
+        hash.values.flatten.each do |spec|
+          next if spec.subspec?
+          source = spec.source
+          source[:git] = (ROOT + "spec/fixtures/#{spec.name}").to_s
+          spec.source = source
         end
       end
-
-    else
-
-      alias_method :original_dependent_specifications, :dependent_specifications
-      def dependent_specifications
-        @dependent_specifications ||= original_dependent_specifications
-        @dependent_specifications.each do |spec|
-          unless spec.part_of_other_pod?
-            source = spec.source
-            source[:git] = (ROOT + "spec/fixtures/#{spec.name}").to_s
-            spec.source = source
-          end
-        end
-        @dependent_specifications
-      end
-
     end
   end
 end

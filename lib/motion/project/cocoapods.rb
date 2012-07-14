@@ -47,7 +47,7 @@ module Motion::Project
   end
 
   class CocoaPods
-    VERSION   = '1.0.5'
+    VERSION   = '1.1.0'
     PODS_ROOT = 'vendor/Pods'
 
     def initialize(config)
@@ -61,11 +61,15 @@ module Motion::Project
       else
         cp_config.silent = true
       end
-      cp_config.rootspec = @podfile unless cocoapods_v06_and_higher?
-      cp_config.integrate_targets = false if cocoapods_v06_and_higher?
+      cp_config.integrate_targets = false
       cp_config.project_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
     end
 
+    def pod(*name_and_version_requirements, &block)
+      @podfile.pod(*name_and_version_requirements, &block)
+    end
+
+    # Deprecated.
     def dependency(*name_and_version_requirements, &block)
       @podfile.dependency(*name_and_version_requirements, &block)
     end
@@ -83,11 +87,6 @@ module Motion::Project
     def install!
       if bridgesupport_file.exist? && pods_installer.lock_file.exist?
         installed_pods_before = installed_pods
-      end
-
-      unless cocoapods_v06_and_higher?
-        pods_installer.project.build_configuration("Debug").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"]   = @config.deployment_target
-        pods_installer.project.build_configuration("Release").buildSettings["IPHONEOS_DEPLOYMENT_TARGET"] = @config.deployment_target
       end
 
       pods_installer.install!
@@ -122,21 +121,8 @@ module Motion::Project
 
     def pods_xcconfig
       pods_installer.target_installers.find do |target_installer|
-        if cocoapods_v06_and_higher?
-          target_installer.target_definition.name == :default
-        else
-          target_installer.definition.name == :default
-        end
+        target_installer.target_definition.name == :default
       end.xcconfig
-    end
-
-    def cocoapods_v06_and_higher?
-      self.class.cocoapods_v06_and_higher?
-    end
-
-    def self.cocoapods_v06_and_higher?
-      # last 0.5.x version of CP
-      Gem::Version.new(Pod::VERSION) > Gem::Version.new('0.5.1')
     end
   end
 end

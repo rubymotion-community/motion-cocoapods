@@ -27,12 +27,8 @@ describe "CocoaPodsConfig" do
       pods do
         context.podfile = @podfile
 
-        dependency 'Reachability', '2.0.5'
-        if Motion::Project::CocoaPods.cocoapods_v06_and_higher?
-          dependency 'ASIHTTPRequest/ASIWebPageRequest', '1.8.1'
-        else
-          dependency 'ASIWebPageRequest', '1.8.1'
-        end
+        pod 'Reachability', '2.0.5'
+        pod'ASIHTTPRequest/ASIWebPageRequest', '1.8.1'
 
         post_install do |installer|
           context.installer_from_post_install_hook = installer
@@ -48,12 +44,7 @@ describe "CocoaPodsConfig" do
   end
 
   it "configures CocoaPods to resolve dependency files for the iOS platform" do
-    if Motion::Project::CocoaPods.cocoapods_v06_and_higher?
-      @podfile.target_definitions[:default].platform.should == :ios
-    else
-      Pod::Config.instance.rootspec.platform.should == :ios
-      @podfile.platform.should == :ios
-    end
+    @podfile.target_definitions[:default].platform.should == :ios
   end
 
   it "writes Podfile.lock to vendor/" do
@@ -77,11 +68,7 @@ describe "CocoaPodsConfig" do
   end
 
   it "pods deployment target should equal to project deployment target" do
-    if Motion::Project::CocoaPods.cocoapods_v06_and_higher?
-      @installer.config.podfile.target_definitions[:default].platform.deployment_target.to_s.should == '5.0'
-    else
-      Pod::Config.instance.rootspec.platform.options[:deployment_target].should == '5.0'
-    end
+    @installer.config.podfile.target_definitions[:default].platform.deployment_target.to_s.should == '5.0'
   end
 
   it "removes Pods.bridgesupport whenever the PODS section of Podfile.lock changes" do
