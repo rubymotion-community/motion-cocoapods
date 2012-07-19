@@ -28,7 +28,7 @@ describe "CocoaPodsConfig" do
         context.podfile = @podfile
 
         pod 'Reachability', '2.0.5'
-        pod'ASIHTTPRequest/ASIWebPageRequest', '1.8.1'
+        pod 'ASIHTTPRequest/ASIWebPageRequest', '1.8.1'
 
         post_install do |installer|
           context.installer_from_post_install_hook = installer
