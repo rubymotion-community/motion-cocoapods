@@ -4,9 +4,6 @@
 [submodule "spec/fixtures/ASIHTTPRequest"]
 	path = spec/fixtures/ASIHTTPRequest
 	url = git://github.com/pokeb/asi-http-request.git
-[submodule "spec/fixtures/RestKitTest"]
-	path = spec/fixtures/RestKitTest
-	url = git://github.com/alloy/RestKitTest.git
 [submodule "spec/fixtures/Reachability"]
 	path = spec/fixtures/Reachability
 	url = git://github.com/CocoaPods/unmaintained-pod-Reachability.git
