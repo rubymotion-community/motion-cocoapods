@@ -124,5 +124,9 @@ module Motion::Project
         target_installer.target_definition.name == :default
       end.xcconfig
     end
+
+    def inspect
+      @podfile.dependencies.inspect
+    end
   end
 end

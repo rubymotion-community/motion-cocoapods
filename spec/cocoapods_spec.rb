@@ -91,4 +91,8 @@ describe "CocoaPodsConfig" do
     bs_file.should.not.exist
   end
 
+  it 'should produce reasonably short config output' do
+    @config.pods.inspect.should == '[<Pod::Dependency type=:runtime name="Reachability" requirements="= 2.0.5">, <Pod::Dependency type=:runtime name="ASIHTTPRequest/ASIWebPageRequest" requirements="= 1.8.1">]'
+  end
+
 end
