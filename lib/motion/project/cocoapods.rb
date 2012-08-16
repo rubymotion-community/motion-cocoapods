@@ -126,7 +126,7 @@ module Motion::Project
     end
 
     def inspect
-      @podfile.dependencies.inspect
+      ''
     end
   end
 end
