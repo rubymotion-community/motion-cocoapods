@@ -36,11 +36,16 @@ module Motion::Project
     def pods(&block)
       @pods ||= Motion::Project::CocoaPods.new(self)
       if block
-        unless ENV['COCOAPODS_NO_UPDATE']
+        # We run the update/install commands only if necessary.
+        podfile_lock = File.join(self.project_dir, 'vendor', 'Podfile.lock')
+        podfile_changed = (!File.exist?(podfile_lock) or File.mtime(self.project_file) > File.mtime(podfile_lock))
+        if podfile_changed and !ENV['COCOAPODS_NO_UPDATE']
           Pod::Command::Repo.new(Pod::Command::ARGV.new(["update"])).run
         end
         @pods.instance_eval(&block)
-        @pods.install!
+        if podfile_changed
+          @pods.install!
+        end
       end
       @pods
     end
