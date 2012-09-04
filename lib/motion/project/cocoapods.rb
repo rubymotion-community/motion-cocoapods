@@ -43,16 +43,14 @@ module Motion::Project
           Pod::Command::Repo.new(Pod::Command::ARGV.new(["update"])).run
         end
         @pods.instance_eval(&block)
-        if podfile_changed
-          @pods.install!
-        end
+        @pods.install!(podfile_changed)
       end
       @pods
     end
   end
 
   class CocoaPods
-    VERSION   = '1.1.1'
+    VERSION   = '1.1.2'
     PODS_ROOT = 'vendor/Pods'
 
     def initialize(config)
@@ -89,12 +87,12 @@ module Motion::Project
 
     # For now we only support one Pods target, this will have to be expanded
     # once we work on more spec support.
-    def install!
+    def install!(podfile_changed)
       if bridgesupport_file.exist? && pods_installer.lock_file.exist?
         installed_pods_before = installed_pods
       end
 
-      pods_installer.install!
+      pods_installer.install! if podfile_changed
 
       # Let RubyMotion re-generate the BridgeSupport file whenever the list of
       # installed pods changes.
