@@ -127,5 +127,9 @@ module Motion::Project
         target_installer.target_definition.name == :default
       end.xcconfig
     end
+
+    def inspect
+      ''
+    end
   end
 end
