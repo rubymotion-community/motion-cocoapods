@@ -91,4 +91,8 @@ describe "CocoaPodsConfig" do
     bs_file.should.not.exist
   end
 
+  it 'should produce reasonably short config output' do
+    @config.pods.inspect.should == ''
+  end
+
 end
