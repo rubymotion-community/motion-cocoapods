@@ -26,6 +26,7 @@ unless defined?(Motion::Project::Config)
   raise "This file must be required within a RubyMotion project Rakefile."
 end
 
+require 'xcodeproj'
 require 'cocoapods'
 require 'yaml'
 
@@ -92,14 +93,7 @@ module Motion::Project
         installed_pods_before = installed_pods
       end
 
-      if podfile_changed
-        pods_installer.install!
-      else
-        pods_installer.target_installers.each do |target_installer|
-          pods_for_target = pods_installer.pods_by_target[target_installer.target_definition]
-          target_installer.install!(pods_for_target, pods_installer.sandbox)
-        end
-      end
+      pods_installer.install! if podfile_changed
 
       # Let RubyMotion re-generate the BridgeSupport file whenever the list of
       # installed pods changes.
@@ -130,9 +124,8 @@ module Motion::Project
     end
 
     def pods_xcconfig
-      pods_installer.target_installers.find do |target_installer|
-        target_installer.target_definition.name == :default
-      end.xcconfig
+      path = Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.xcconfig'
+      Xcodeproj::Config.new(path)
     end
 
     def inspect
