@@ -26,6 +26,7 @@ unless defined?(Motion::Project::Config)
   raise "This file must be required within a RubyMotion project Rakefile."
 end
 
+require 'xcodeproj'
 require 'cocoapods'
 require 'yaml'
 
@@ -123,9 +124,8 @@ module Motion::Project
     end
 
     def pods_xcconfig
-      pods_installer.target_installers.find do |target_installer|
-        target_installer.target_definition.name == :default
-      end.xcconfig
+      path = Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.xcconfig'
+      Xcodeproj::Config.new(path)
     end
 
     def inspect
