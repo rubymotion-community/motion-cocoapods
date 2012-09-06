@@ -92,7 +92,14 @@ module Motion::Project
         installed_pods_before = installed_pods
       end
 
-      pods_installer.install! if podfile_changed
+      if podfile_changed
+        pods_installer.install!
+      else
+        pods_installer.target_installers.each do |target_installer|
+          pods_for_target = pods_installer.pods_by_target[target_installer.target_definition]
+          target_installer.install!(pods_for_target, pods_installer.sandbox)
+        end
+      end
 
       # Let RubyMotion re-generate the BridgeSupport file whenever the list of
       # installed pods changes.
