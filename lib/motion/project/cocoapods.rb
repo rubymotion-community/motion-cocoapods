@@ -108,9 +108,18 @@ module Motion::Project
       )
 
       if ldflags = pods_xcconfig.to_hash['OTHER_LDFLAGS']
+        lib_search_paths = pods_xcconfig.to_hash['LIBRARY_SEARCH_PATHS'] || ""
+        lib_search_paths.gsub!('$(PODS_ROOT)', "-L#{@config.project_dir}/#{PODS_ROOT}")
+
         @config.frameworks.concat(ldflags.scan(/-framework\s+([^\s]+)/).map { |m| m[0] })
         @config.frameworks.uniq!
-        @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |m| "/usr/lib/lib#{m[0]}.dylib" })
+        @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |m|
+          if lib_search_paths.length == 0 || File.exist?("/usr/lib/lib#{m[0]}.dylib")
+            "/usr/lib/lib#{m[0]}.dylib"
+          else
+            "#{lib_search_paths} -l#{m[0]}"
+          end
+        })
         @config.libs.uniq!
       end
     end
