@@ -40,16 +40,21 @@ dependencies, build them and link them to your application executable.
 
 == Options
 
+If a Podfile.lock file exists, this will be used to install specific versions.
+To update the versions, you can set the +UPDATE+ env variable.
+
+    $ rake UPDATE=1
+
 By default the output of CocoaPods doing its work is silenced. If, however, you
 would like to see the output, you can set the +COCOAPODS_VERBOSE+ env variable.
 
-    $ env COCOAPODS_VERBOSE=1 rake
+    $ rake COCOAPODS_VERBOSE=1
 
 On every build, CocoaPods will try to update the specification repos in
 +~/.cocoapods+, if you want to skip this then set the +COCOAPODS_NO_UPDATE+ env
 variable.
 
-    $ env COCOAPODS_NO_UPDATE=1 rake
+    $ rake COCOAPODS_NO_UPDATE=1
 
 
 == Contribute
