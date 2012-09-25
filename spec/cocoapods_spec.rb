@@ -74,7 +74,7 @@ describe "CocoaPodsConfig" do
   it "removes Pods.bridgesupport whenever the PODS section of Podfile.lock changes" do
     bs_file = @config.pods.bridgesupport_file
     bs_file.open('w') { |f| f.write 'ORIGINAL CONTENT' }
-    lock_file = @installer.lock_file
+    lock_file = @installer.config.project_lockfile
 
     # Even if another section changes, it doesn't remove Pods.bridgesupport
     contents = YAML.load(lock_file.read)

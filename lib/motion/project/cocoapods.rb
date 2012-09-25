@@ -38,13 +38,13 @@ module Motion::Project
       @pods ||= Motion::Project::CocoaPods.new(self)
       if block
         # We run the update/install commands only if necessary.
-        podfile_lock = File.join(self.project_dir, 'vendor', 'Podfile.lock')
+        podfile_lock = Pod::Config.instance.project_lockfile
         podfile_changed = (!File.exist?(podfile_lock) or File.mtime(self.project_file) > File.mtime(podfile_lock))
         if podfile_changed and !ENV['COCOAPODS_NO_UPDATE']
           Pod::Command::Repo.new(Pod::Command::ARGV.new(["update"])).run
         end
         @pods.instance_eval(&block)
-        @pods.install!(podfile_changed)
+        @pods.install!
       end
       @pods
     end
@@ -56,15 +56,17 @@ module Motion::Project
 
     def initialize(config)
       @config = config
-      @podfile = Pod::Podfile.new {}
-      @podfile.platform :ios, :deployment_target => config.deployment_target
 
-      cp_config = Pod::Config.instance
+      @podfile = Pod::Podfile.new {}
+      @podfile.platform :ios, config.deployment_target
+      cp_config.podfile = @podfile
+
       if ENV['COCOAPODS_VERBOSE']
         cp_config.verbose = true
       else
         cp_config.silent = true
       end
+
       cp_config.integrate_targets = false
       cp_config.project_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
     end
@@ -83,21 +85,28 @@ module Motion::Project
     end
 
     def pods_installer
-      @installer ||= Pod::Installer.new(@podfile)
+      @installer ||= begin
+        # This should move into a factory method in CocoaPods.
+        sandbox = Pod::Sandbox.new(cp_config.project_pods_root)
+        resolver = Pod::Resolver.new(@podfile, cp_config.lockfile, sandbox)
+        resolver.update_mode = !!ENV['UPDATE']
+        Pod::Installer.new(resolver)
+      end
     end
 
     # For now we only support one Pods target, this will have to be expanded
     # once we work on more spec support.
-    def install!(podfile_changed)
-      if bridgesupport_file.exist? && pods_installer.lock_file.exist?
+    def install!
+      if bridgesupport_file.exist? && cp_config.project_lockfile.exist?
         installed_pods_before = installed_pods
       end
 
-      pods_installer.install! if podfile_changed
+      pods_installer.install!
 
       # Let RubyMotion re-generate the BridgeSupport file whenever the list of
       # installed pods changes.
-      if bridgesupport_file.exist? && installed_pods_before && installed_pods_before != installed_pods
+      if bridgesupport_file.exist? && installed_pods_before &&
+          installed_pods_before != installed_pods
         bridgesupport_file.delete
       end
 
@@ -124,8 +133,12 @@ module Motion::Project
       end
     end
 
+    def cp_config
+      Pod::Config.instance
+    end
+
     def installed_pods
-      YAML.load(pods_installer.lock_file.read)['PODS']
+      YAML.load(cp_config.project_lockfile.read)['PODS']
     end
 
     def bridgesupport_file
