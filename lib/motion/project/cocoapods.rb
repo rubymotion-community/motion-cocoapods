@@ -120,6 +120,14 @@ module Motion::Project
         lib_search_paths = pods_xcconfig.to_hash['LIBRARY_SEARCH_PATHS'] || ""
         lib_search_paths.gsub!('$(PODS_ROOT)', "-L#{@config.project_dir}/#{PODS_ROOT}")
 
+        framework_search_paths = pods_xcconfig.to_hash['FRAMEWORK_SEARCH_PATHS']
+        if framework_search_paths
+          framework_search_paths.scan(/\"([^\"]+)\"/) do |search_path|
+            path = search_path.first.gsub!('$(PODS_ROOT)', "#{@config.project_dir}/#{PODS_ROOT}")
+            @config.framework_search_paths << path
+          end
+        end
+
         @config.frameworks.concat(ldflags.scan(/-framework\s+([^\s]+)/).map { |m| m[0] })
         @config.frameworks.uniq!
         @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |m|
