@@ -126,7 +126,7 @@ module Motion::Project
           if lib_search_paths.length == 0 || File.exist?("/usr/lib/lib#{m[0]}.dylib")
             "/usr/lib/lib#{m[0]}.dylib"
           else
-            "#{lib_search_paths} -l#{m[0]}"
+            "#{lib_search_paths} -all_load -l#{m[0]}"
           end
         })
         @config.libs.uniq!
