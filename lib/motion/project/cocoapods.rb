@@ -110,6 +110,8 @@ module Motion::Project
         bridgesupport_file.delete
       end
 
+      install_resources
+
       @config.vendor_project(PODS_ROOT, :xcode,
         :target => 'Pods',
         :headers_dir => 'Headers',
@@ -156,6 +158,37 @@ module Motion::Project
     def pods_xcconfig
       path = Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.xcconfig'
       Xcodeproj::Config.new(path)
+    end
+
+    def resources_dir
+      Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
+    end
+
+    def resources
+      resources = []
+      pods_resources_path = Pathname.new(@config.project_dir) + PODS_ROOT + "Pods-resources.sh"
+      File.open(pods_resources_path) { |f|
+        f.each_line do |line|
+          if matched = line.match(/install_resource\s+'(.*)'/)
+            resources << Pathname.new(@config.project_dir) + PODS_ROOT + matched[1]
+          end
+        end
+      }
+      resources
+    end
+
+    def install_resources
+      FileUtils.mkdir_p(resources_dir)
+      resources.each do |file|
+        begin
+          FileUtils.cp_r file, resources_dir
+        rescue ArgumentError => exc
+          unless exc.message =~ /same file/
+            raise
+          end
+        end
+      end
+      @config.resources_dirs << resources_dir
     end
 
     def inspect
