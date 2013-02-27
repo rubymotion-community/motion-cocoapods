@@ -188,7 +188,7 @@ module Motion::Project
           end
         end
       end
-      @config.resources_dirs << resources_dir
+      @config.resources_dirs << resources_dir.to_s
     end
 
     def inspect
