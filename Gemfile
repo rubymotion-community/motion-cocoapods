@@ -1,7 +1,7 @@
-source :rubygems
+source 'https://rubygems.org'
 
 gem 'xcodeproj' #, :git => 'git://github.com/CocoaPods/Xcodeproj.git'
-gem 'cocoapods' #, :git => 'git://github.com/CocoaPods/CocoaPods.git'
+gem 'cocoapods' , :git => 'git://github.com/CocoaPods/CocoaPods.git'
 
 gem 'bacon'
 gem 'rake'

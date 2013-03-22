@@ -1,15 +1,15 @@
 # Copyright (c) 2012, Laurent Sansonetti <lrz@hipbyte.com>
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright notice,
 #    this list of conditions and the following disclaimer.
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -38,10 +38,10 @@ module Motion::Project
       @pods ||= Motion::Project::CocoaPods.new(self)
       if block
         # We run the update/install commands only if necessary.
-        podfile_lock = Pod::Config.instance.project_lockfile
-        podfile_changed = (!File.exist?(podfile_lock) or File.mtime(self.project_file) > File.mtime(podfile_lock))
+        podfile_lock = Pod::Config.instance.lockfile
+        podfile_changed = (!podfile_lock or File.mtime(self.project_file) > File.mtime(podfile_lock))
         if podfile_changed and !ENV['COCOAPODS_NO_UPDATE']
-          Pod::Command::Repo.new(Pod::Command::ARGV.new(["update"])).run
+          Pod::SourcesManager.update
         end
         @pods.instance_eval(&block)
         @pods.install!
@@ -68,7 +68,7 @@ module Motion::Project
       end
 
       cp_config.integrate_targets = false
-      cp_config.project_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
+      cp_config.installation_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
     end
 
     def pod(*name_and_version_requirements, &block)
@@ -85,28 +85,17 @@ module Motion::Project
     end
 
     def pods_installer
-      @installer ||= begin
-        # This should move into a factory method in CocoaPods.
-        sandbox = Pod::Sandbox.new(cp_config.project_pods_root)
-        resolver = Pod::Resolver.new(@podfile, cp_config.lockfile, sandbox)
-        resolver.update_mode = !!ENV['UPDATE']
-        Pod::Installer.new(resolver)
-      end
+      @installer ||= Pod::Installer.new(cp_config.sandbox, @podfile, cp_config.lockfile)
     end
 
     # For now we only support one Pods target, this will have to be expanded
     # once we work on more spec support.
     def install!
-      if bridgesupport_file.exist? && cp_config.project_lockfile.exist?
-        installed_pods_before = installed_pods
-      end
-
       pods_installer.install!
 
       # Let RubyMotion re-generate the BridgeSupport file whenever the list of
       # installed pods changes.
-      if bridgesupport_file.exist? && installed_pods_before &&
-          installed_pods_before != installed_pods
+      if bridgesupport_file.exist? && !pods_installer.installed_specs.empty?
         bridgesupport_file.delete
       end
 
@@ -145,10 +134,6 @@ module Motion::Project
 
     def cp_config
       Pod::Config.instance
-    end
-
-    def installed_pods
-      YAML.load(cp_config.project_lockfile.read)['PODS']
     end
 
     def bridgesupport_file

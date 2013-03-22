@@ -11,7 +11,7 @@ describe "CocoaPodsConfig" do
 
   def podfile=(podfile); @podfile = podfile; end
   def installer=(installer); @installer = installer; end
-  def installer_from_post_install_hook=(installer); @installer_from_post_install_hook = installer; end
+  def installer_rep_from_post_install_hook=(installer); @installer_rep_from_post_install_hook = installer; end
 
   before do
     #ENV['COCOAPODS_VERBOSE'] = '1'
@@ -31,7 +31,7 @@ describe "CocoaPodsConfig" do
         pod 'ASIHTTPRequest/ASIWebPageRequest', '1.8.1'
 
         post_install do |installer|
-          context.installer_from_post_install_hook = installer
+          context.installer_rep_from_post_install_hook = installer
         end
 
         context.installer = pods_installer
@@ -44,7 +44,7 @@ describe "CocoaPodsConfig" do
   end
 
   it "configures CocoaPods to resolve dependency files for the iOS platform" do
-    @podfile.target_definitions[:default].platform.should == :ios
+    @podfile.target_definition_list.first.platform.should == :ios
   end
 
   it "writes Podfile.lock to vendor/" do
@@ -64,29 +64,30 @@ describe "CocoaPodsConfig" do
   end
 
   it "runs the post_install hook" do
-    @installer_from_post_install_hook.should == @installer
+    @installer_rep_from_post_install_hook.pods.map(&:name).should == ["ASIHTTPRequest", "Reachability"]
   end
 
   it "pods deployment target should equal to project deployment target" do
-    @installer.config.podfile.target_definitions[:default].platform.deployment_target.to_s.should == '5.0'
+    @podfile.target_definition_list.first.platform.deployment_target.to_s.should == '5.0'
   end
 
   it "removes Pods.bridgesupport whenever the PODS section of Podfile.lock changes" do
     bs_file = @config.pods.bridgesupport_file
     bs_file.open('w') { |f| f.write 'ORIGINAL CONTENT' }
-    lock_file = @installer.config.project_lockfile
+    lock_file = @installer.config.lockfile
 
     # Even if another section changes, it doesn't remove Pods.bridgesupport
-    contents = YAML.load(lock_file.read)
-    contents['DEPENDENCIES'].clear
-    lock_file.open('w') { |f| f.write contents.to_yaml }
+    lockfile_data = lock_file.to_hash
+    lockfile_data['DEPENDENCIES'] = []
+    Pod::Lockfile.new(lockfile_data).write_to_disk(@installer.config.sandbox.manifest.defined_in_file)
     @config.pods.install!
     bs_file.read.should == 'ORIGINAL CONTENT'
 
     # If the PODS section changes, then Pods.bridgesupport is removed
-    contents = YAML.load(lock_file.read)
-    contents['PODS'].delete_at(-1)
-    lock_file.open('w') { |f| f.write contents.to_yaml }
+    lockfile_data = lock_file.to_hash
+    lockfile_data['PODS'] = []
+    Pod::Lockfile.new(lockfile_data).write_to_disk(@installer.config.sandbox.manifest.defined_in_file)
+    @installer.config.instance_variable_set(:@lockfile, nil)
     @config.pods.install!
     bs_file.should.not.exist
   end
