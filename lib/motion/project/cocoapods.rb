@@ -139,23 +139,20 @@ module Motion::Project
       Pod::Config.instance
     end
 
+    # Assumes one Pod library
     def bridgesupport_file
-      Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.bridgesupport'
+      pods_installer.libraries.first.bridge_support_path
     end
 
+    # Assumes one Pod library
     def pods_xcconfig
-      path = Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.xcconfig'
-      Xcodeproj::Config.new(path)
+      pods_installer.libraries.first.xcconfig
     end
 
-    def resources_dir
-      Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
-    end
-
+    # Assumes one Pod library
     def resources
       resources = []
-      pods_resources_path = Pathname.new(@config.project_dir) + PODS_ROOT + "Pods-resources.sh"
-      File.open(pods_resources_path) { |f|
+      File.open(pods_installer.libraries.first.copy_resources_script_path) { |f|
         f.each_line do |line|
           if matched = line.match(/install_resource\s+'(.*)'/)
             resources << Pathname.new(@config.project_dir) + PODS_ROOT + matched[1]
@@ -163,6 +160,10 @@ module Motion::Project
         end
       }
       resources
+    end
+
+    def resources_dir
+      Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
     end
 
     def install_resources
