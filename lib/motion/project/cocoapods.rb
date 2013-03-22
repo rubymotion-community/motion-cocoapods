@@ -37,14 +37,14 @@ module Motion::Project
     def pods(&block)
       @pods ||= Motion::Project::CocoaPods.new(self)
       if block
-        # We run the update/install commands only if necessary.
-        podfile_lock = Pod::Config.instance.lockfile
-        podfile_changed = (!podfile_lock or File.mtime(self.project_file) > File.mtime(podfile_lock))
-        if podfile_changed and !ENV['COCOAPODS_NO_UPDATE']
-          Pod::SourcesManager.update
-        end
         @pods.instance_eval(&block)
-        @pods.install!
+
+        # We run the update/install commands only if necessary.
+        cp_config = Pod::Config.instance
+        analyzer = Pod::Installer::Analyzer.new(cp_config.sandbox, @pods.podfile, cp_config.lockfile)
+        if analyzer.needs_install?
+          @pods.install!
+        end
       end
       @pods
     end
@@ -54,6 +54,8 @@ module Motion::Project
     VERSION   = '1.2.2'
     PODS_ROOT = 'vendor/Pods'
 
+    attr_accessor :podfile
+
     def initialize(config)
       @config = config
 
@@ -61,6 +63,7 @@ module Motion::Project
       @podfile.platform :ios, config.deployment_target
       cp_config.podfile = @podfile
 
+      cp_config.skip_repo_update = ENV['COCOAPODS_NO_UPDATE']
       if ENV['COCOAPODS_VERBOSE']
         cp_config.verbose = true
       else
