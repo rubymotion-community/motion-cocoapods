@@ -45,10 +45,13 @@ module Motion::Project
         if analyzer.needs_install?
           @pods.install!
         end
+        @pods.link_project
       end
       @pods
     end
   end
+
+  #---------------------------------------------------------------------------#
 
   class CocoaPods
     VERSION   = '1.2.2'
@@ -74,6 +77,9 @@ module Motion::Project
       cp_config.installation_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
     end
 
+    # DSL
+    #-------------------------------------------------------------------------#
+
     def pod(*name_and_version_requirements, &block)
       @podfile.pod(*name_and_version_requirements, &block)
     end
@@ -87,21 +93,31 @@ module Motion::Project
       @podfile.post_install(&block)
     end
 
+    # Installation & Linking
+    #-------------------------------------------------------------------------#
+
     def pods_installer
       @installer ||= Pod::Installer.new(cp_config.sandbox, @podfile, cp_config.lockfile)
     end
 
+    # Performs a CocoaPods Installation.
+    #
     # For now we only support one Pods target, this will have to be expanded
     # once we work on more spec support.
+    #
+    # Let RubyMotion re-generate the BridgeSupport file whenever the list of
+    # installed pods changes.
+    #
     def install!
       pods_installer.install!
-
-      # Let RubyMotion re-generate the BridgeSupport file whenever the list of
-      # installed pods changes.
       if bridgesupport_file.exist? && !pods_installer.installed_specs.empty?
         bridgesupport_file.delete
       end
+    end
 
+    # Adds the Pods project to the RubyMotion config as a vendored project.
+    #
+    def link_project
       install_resources
 
       @config.vendor_project(PODS_ROOT, :xcode,
@@ -135,37 +151,6 @@ module Motion::Project
       end
     end
 
-    def cp_config
-      Pod::Config.instance
-    end
-
-    # Assumes one Pod library
-    def bridgesupport_file
-      pods_installer.libraries.first.bridge_support_path
-    end
-
-    # Assumes one Pod library
-    def pods_xcconfig
-      pods_installer.libraries.first.xcconfig
-    end
-
-    # Assumes one Pod library
-    def resources
-      resources = []
-      File.open(pods_installer.libraries.first.copy_resources_script_path) { |f|
-        f.each_line do |line|
-          if matched = line.match(/install_resource\s+'(.*)'/)
-            resources << Pathname.new(@config.project_dir) + PODS_ROOT + matched[1]
-          end
-        end
-      }
-      resources
-    end
-
-    def resources_dir
-      Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
-    end
-
     def install_resources
       FileUtils.mkdir_p(resources_dir)
       resources.each do |file|
@@ -178,6 +163,38 @@ module Motion::Project
         end
       end
       @config.resources_dirs << resources_dir.to_s
+    end
+
+    # Helpers
+    #-------------------------------------------------------------------------#
+
+    def cp_config
+      Pod::Config.instance
+    end
+
+    def bridgesupport_file
+      Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.bridgesupport'
+    end
+
+    def pods_xcconfig
+      path = Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.xcconfig'
+      Xcodeproj::Config.new(path)
+    end
+
+    def resources
+      resources = []
+      File.open(Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods-resources.sh') { |f|
+        f.each_line do |line|
+          if matched = line.match(/install_resource\s+'(.*)'/)
+            resources << Pathname.new(@config.project_dir) + PODS_ROOT + matched[1]
+          end
+        end
+      }
+      resources
+    end
+
+    def resources_dir
+      Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
     end
 
     def inspect
