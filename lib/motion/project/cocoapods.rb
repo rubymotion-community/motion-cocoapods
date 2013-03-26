@@ -1,15 +1,15 @@
 # Copyright (c) 2012, Laurent Sansonetti <lrz@hipbyte.com>
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright notice,
 #    this list of conditions and the following disclaimer.
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -37,22 +37,27 @@ module Motion::Project
     def pods(&block)
       @pods ||= Motion::Project::CocoaPods.new(self)
       if block
-        # We run the update/install commands only if necessary.
-        podfile_lock = Pod::Config.instance.project_lockfile
-        podfile_changed = (!File.exist?(podfile_lock) or File.mtime(self.project_file) > File.mtime(podfile_lock))
-        if podfile_changed and !ENV['COCOAPODS_NO_UPDATE']
-          Pod::Command::Repo.new(Pod::Command::ARGV.new(["update"])).run
-        end
         @pods.instance_eval(&block)
-        @pods.install!
+
+        # We run the update/install commands only if necessary.
+        cp_config = Pod::Config.instance
+        analyzer = Pod::Installer::Analyzer.new(cp_config.sandbox, @pods.podfile, cp_config.lockfile)
+        if analyzer.needs_install?
+          @pods.install!
+        end
+        @pods.link_project
       end
       @pods
     end
   end
 
+  #---------------------------------------------------------------------------#
+
   class CocoaPods
     VERSION   = '1.2.2'
     PODS_ROOT = 'vendor/Pods'
+
+    attr_accessor :podfile
 
     def initialize(config)
       @config = config
@@ -61,6 +66,7 @@ module Motion::Project
       @podfile.platform :ios, config.deployment_target
       cp_config.podfile = @podfile
 
+      cp_config.skip_repo_update = ENV['COCOAPODS_NO_UPDATE']
       if ENV['COCOAPODS_VERBOSE']
         cp_config.verbose = true
       else
@@ -68,8 +74,11 @@ module Motion::Project
       end
 
       cp_config.integrate_targets = false
-      cp_config.project_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
+      cp_config.installation_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
     end
+
+    # DSL
+    #-------------------------------------------------------------------------#
 
     def pod(*name_and_version_requirements, &block)
       @podfile.pod(*name_and_version_requirements, &block)
@@ -84,32 +93,31 @@ module Motion::Project
       @podfile.post_install(&block)
     end
 
+    # Installation & Linking
+    #-------------------------------------------------------------------------#
+
     def pods_installer
-      @installer ||= begin
-        # This should move into a factory method in CocoaPods.
-        sandbox = Pod::Sandbox.new(cp_config.project_pods_root)
-        resolver = Pod::Resolver.new(@podfile, cp_config.lockfile, sandbox)
-        resolver.update_mode = !!ENV['UPDATE']
-        Pod::Installer.new(resolver)
+      @installer ||= Pod::Installer.new(cp_config.sandbox, @podfile, cp_config.lockfile)
+    end
+
+    # Performs a CocoaPods Installation.
+    #
+    # For now we only support one Pods target, this will have to be expanded
+    # once we work on more spec support.
+    #
+    # Let RubyMotion re-generate the BridgeSupport file whenever the list of
+    # installed pods changes.
+    #
+    def install!
+      pods_installer.install!
+      if bridgesupport_file.exist? && !pods_installer.installed_specs.empty?
+        bridgesupport_file.delete
       end
     end
 
-    # For now we only support one Pods target, this will have to be expanded
-    # once we work on more spec support.
-    def install!
-      if bridgesupport_file.exist? && cp_config.project_lockfile.exist?
-        installed_pods_before = installed_pods
-      end
-
-      pods_installer.install!
-
-      # Let RubyMotion re-generate the BridgeSupport file whenever the list of
-      # installed pods changes.
-      if bridgesupport_file.exist? && installed_pods_before &&
-          installed_pods_before != installed_pods
-        bridgesupport_file.delete
-      end
-
+    # Adds the Pods project to the RubyMotion config as a vendored project.
+    #
+    def link_project
       install_resources
 
       @config.vendor_project(PODS_ROOT, :xcode,
@@ -143,40 +151,6 @@ module Motion::Project
       end
     end
 
-    def cp_config
-      Pod::Config.instance
-    end
-
-    def installed_pods
-      YAML.load(cp_config.project_lockfile.read)['PODS']
-    end
-
-    def bridgesupport_file
-      Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.bridgesupport'
-    end
-
-    def pods_xcconfig
-      path = Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.xcconfig'
-      Xcodeproj::Config.new(path)
-    end
-
-    def resources_dir
-      Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
-    end
-
-    def resources
-      resources = []
-      pods_resources_path = Pathname.new(@config.project_dir) + PODS_ROOT + "Pods-resources.sh"
-      File.open(pods_resources_path) { |f|
-        f.each_line do |line|
-          if matched = line.match(/install_resource\s+'(.*)'/)
-            resources << Pathname.new(@config.project_dir) + PODS_ROOT + matched[1]
-          end
-        end
-      }
-      resources
-    end
-
     def install_resources
       FileUtils.mkdir_p(resources_dir)
       resources.each do |file|
@@ -189,6 +163,38 @@ module Motion::Project
         end
       end
       @config.resources_dirs << resources_dir.to_s
+    end
+
+    # Helpers
+    #-------------------------------------------------------------------------#
+
+    def cp_config
+      Pod::Config.instance
+    end
+
+    def bridgesupport_file
+      Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.bridgesupport'
+    end
+
+    def pods_xcconfig
+      path = Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.xcconfig'
+      Xcodeproj::Config.new(path)
+    end
+
+    def resources
+      resources = []
+      File.open(Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods-resources.sh') { |f|
+        f.each_line do |line|
+          if matched = line.match(/install_resource\s+'(.*)'/)
+            resources << Pathname.new(@config.project_dir) + PODS_ROOT + matched[1]
+          end
+        end
+      }
+      resources
+    end
+
+    def resources_dir
+      Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
     end
 
     def inspect

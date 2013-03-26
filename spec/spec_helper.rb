@@ -45,21 +45,3 @@ module SpecHelper
   end
 end
 
-require 'cocoapods/installer'
-# Here we override the `source' of the pod specifications to point to the integration fixtures.
-module Pod
-  class Installer
-    alias_method :original_specs_by_target, :specs_by_target
-    def specs_by_target
-      @specs_by_target ||= original_specs_by_target.tap do |hash|
-        hash.values.flatten.each do |spec|
-          next if spec.subspec?
-          source = spec.source
-          source[:git] = (ROOT + "spec/fixtures/#{spec.name}").to_s
-          spec.source = source
-        end
-      end
-    end
-  end
-end
-
