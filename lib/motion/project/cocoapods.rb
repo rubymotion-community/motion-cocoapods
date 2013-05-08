@@ -63,7 +63,7 @@ module Motion::Project
       @config = config
 
       @podfile = Pod::Podfile.new {}
-      @podfile.platform (App.respond_to?(:template) ? App.template : :ios), config.deployment_target
+      @podfile.platform((App.respond_to?(:template) ? App.template : :ios), config.deployment_target)
       cp_config.podfile = @podfile
 
       cp_config.skip_repo_update = ENV['COCOAPODS_NO_UPDATE']
