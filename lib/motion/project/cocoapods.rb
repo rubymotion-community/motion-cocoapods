@@ -42,9 +42,12 @@ module Motion::Project
         # We run the update/install commands only if necessary.
         cp_config = Pod::Config.instance
         analyzer = Pod::Installer::Analyzer.new(cp_config.sandbox, @pods.podfile, cp_config.lockfile)
-        if analyzer.needs_install?
-          @pods.install!
+        begin
+          need_install = analyzer.needs_install?
+        rescue
+          need_install = true
         end
+        @pods.install! if need_install
         @pods.link_project
       end
       @pods
