@@ -150,6 +150,8 @@ module Motion::Project
             "#{lib_search_paths} -all_load -l#{m[0]}"
           end
         })
+        @config.weak_frameworks.concat(ldflags.scan(/-weak_framework\s+([^\s]+)/).map { |m| m[0] })
+        @config.weak_frameworks.uniq!
         @config.libs.uniq!
       end
     end
