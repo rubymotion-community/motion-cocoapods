@@ -137,7 +137,7 @@ module Motion::Project
         if framework_search_paths
           framework_search_paths.scan(/\"([^\"]+)\"/) do |search_path|
             path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
-            @config.framework_search_paths << path
+            @config.framework_search_paths << path if path
           end
         end
 
