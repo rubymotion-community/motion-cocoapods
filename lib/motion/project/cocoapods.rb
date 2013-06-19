@@ -57,7 +57,7 @@ module Motion::Project
   #---------------------------------------------------------------------------#
 
   class CocoaPods
-    VERSION   = '1.3.2'
+    VERSION   = '1.3.3'
     PODS_ROOT = 'vendor/Pods'
 
     attr_accessor :podfile
