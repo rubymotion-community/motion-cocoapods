@@ -123,8 +123,10 @@ module Motion::Project
     def link_project
       install_resources
 
-      FileUtils.cp "#{PODS_ROOT}/Pods-prefix.pch", "#{PODS_ROOT}/Headers/____Pods-prefix.h"
-      FileUtils.cp "#{PODS_ROOT}/Pods-environment.h", "#{PODS_ROOT}/Headers/____Pods-environment.h"
+      unless File.exist?("#{PODS_ROOT}/Headers/____Pods-prefix.h") && File.exist?("#{PODS_ROOT}/Headers/____Pods-environment.h")
+        FileUtils.cp("#{PODS_ROOT}/Pods-prefix.pch", "#{PODS_ROOT}/Headers/____Pods-prefix.h")
+        FileUtils.cp("#{PODS_ROOT}/Pods-environment.h", "#{PODS_ROOT}/Headers/____Pods-environment.h")
+      end
       @config.vendor_project(PODS_ROOT, :xcode,
         :target => 'Pods',
         :headers_dir => 'Headers',
