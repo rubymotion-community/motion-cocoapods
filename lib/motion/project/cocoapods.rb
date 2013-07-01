@@ -122,11 +122,8 @@ module Motion::Project
     #
     def link_project
       install_resources
+      copy_headers
 
-      unless File.exist?("#{PODS_ROOT}/Headers/____Pods-prefix.h") && File.exist?("#{PODS_ROOT}/Headers/____Pods-environment.h")
-        FileUtils.cp("#{PODS_ROOT}/Pods-prefix.pch", "#{PODS_ROOT}/Headers/____Pods-prefix.h")
-        FileUtils.cp("#{PODS_ROOT}/Pods-environment.h", "#{PODS_ROOT}/Headers/____Pods-environment.h")
-      end
       @config.vendor_project(PODS_ROOT, :xcode,
         :target => 'Pods',
         :headers_dir => 'Headers',
@@ -172,6 +169,16 @@ module Motion::Project
         end
       end
       @config.resources_dirs << resources_dir.to_s
+    end
+
+    def copy_headers
+      headers = Dir.glob(["#{PODS_ROOT}/*.h", "#{PODS_ROOT}/*.pch"])
+      headers.each do |header|
+        header = File.basename(header)
+        unless File.exist?("#{PODS_ROOT}/Headers/____#{header}")
+          FileUtils.cp("#{PODS_ROOT}/#{header}", "#{PODS_ROOT}/Headers/____#{header}")
+        end
+      end
     end
 
     # Helpers
