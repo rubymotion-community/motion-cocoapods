@@ -174,9 +174,10 @@ module Motion::Project
     def copy_headers
       headers = Dir.glob(["#{PODS_ROOT}/*.h", "#{PODS_ROOT}/*.pch"])
       headers.each do |header|
-        header = File.basename(header)
-        unless File.exist?("#{PODS_ROOT}/Headers/____#{header}")
-          FileUtils.cp("#{PODS_ROOT}/#{header}", "#{PODS_ROOT}/Headers/____#{header}")
+        src = File.basename(header)
+        dst = src.sub(/\.pch$/, '.h')
+        unless File.exist?("#{PODS_ROOT}/Headers/____#{dst}")
+          FileUtils.cp("#{PODS_ROOT}/#{src}", "#{PODS_ROOT}/Headers/____#{dst}")
         end
       end
     end
