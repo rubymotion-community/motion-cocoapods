@@ -202,8 +202,9 @@ module Motion::Project
       resources = []
       File.open(Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods-resources.sh') { |f|
         f.each_line do |line|
-          if matched = line.match(/install_resource\s+'(.*)'/)
-            resources << Pathname.new(@config.project_dir) + PODS_ROOT + matched[1]
+          if matched = line.match(/install_resource\s+(.*)/)
+            path = (matched[1].strip)[1..-2]
+            resources << Pathname.new(@config.project_dir) + PODS_ROOT + path
           end
         end
       }
