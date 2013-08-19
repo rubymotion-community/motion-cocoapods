@@ -47,7 +47,11 @@ module Motion::Project
         rescue
           need_install = true
         end
-        @pods.install! if need_install
+        if ENV['COCOCAPODS_UPDATE']
+          @pods.install!(true)
+        else
+          @pods.install! if need_install
+        end
         @pods.link_project
       end
       @pods
@@ -111,7 +115,8 @@ module Motion::Project
     # Let RubyMotion re-generate the BridgeSupport file whenever the list of
     # installed pods changes.
     #
-    def install!
+    def install!(update=false)
+      pods_installer.update_mode = update
       pods_installer.install!
       if bridgesupport_file.exist? && !pods_installer.installed_specs.empty?
         bridgesupport_file.delete
@@ -218,5 +223,13 @@ module Motion::Project
     def inspect
       ''
     end
+  end
+end
+
+namespace :pod do
+  desc "Update outdated pods and clear build objects"
+  task :update do
+    ENV['COCOCAPODS_UPDATE'] = "true"
+    Rake::Task["clean"].invoke
   end
 end
