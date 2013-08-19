@@ -3,7 +3,8 @@ module ::Motion; module Project; class Config
   def self.variable(*); end
 end; end; end
 
-require File.expand_path('../lib/motion/project/cocoapods', __FILE__)
+require 'date'
+require File.expand_path('../lib/motion/project/version', __FILE__)
 
 Gem::Specification.new do |spec|
   spec.name        = 'motion-cocoapods'
