@@ -50,7 +50,7 @@ module Motion::Project
         if ENV['COCOCAPODS_UPDATE']
           @pods.install!(true)
         else
-          @pods.install! if need_install
+          @pods.install! if need_install && !ENV['COCOAPODS_NO_UPDATE']
         end
         @pods.link_project
       end
