@@ -38,23 +38,36 @@ module Motion::Project
       @pods ||= Motion::Project::CocoaPods.new(self)
       if block
         @pods.instance_eval(&block)
+      end
+      @pods
+    end
+  end
 
+  class App
+    class << self
+      def build_with_cocoapods(platform, opts = {})
+        _config = config
+        pods = _config.pods
         # We run the update/install commands only if necessary.
         cp_config = Pod::Config.instance
-        analyzer = Pod::Installer::Analyzer.new(cp_config.sandbox, @pods.podfile, cp_config.lockfile)
+        analyzer = Pod::Installer::Analyzer.new(cp_config.sandbox, pods.podfile, cp_config.lockfile)
         begin
           need_install = analyzer.needs_install?
         rescue
           need_install = true
         end
         if ENV['COCOCAPODS_UPDATE']
-          @pods.install!(true)
+          pods.install!(true)
         else
-          @pods.install! if need_install
+          pods.install! if need_install
         end
-        @pods.link_project
+        pods.link_project
+
+        build_without_cocoapods(platform, opts)
       end
-      @pods
+
+      alias_method "build_without_cocoapods", "build"
+      alias_method "build", "build_with_cocoapods"
     end
   end
 
