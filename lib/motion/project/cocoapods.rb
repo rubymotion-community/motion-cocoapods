@@ -239,9 +239,9 @@ module Motion::Project
 end
 
 namespace :pod do
-  desc "Update outdated pods and clear build objects"
+  desc "Update outdated pods and build objects"
   task :update do
     ENV['COCOCAPODS_UPDATE'] = "true"
-    Rake::Task["clean"].invoke
+    Rake::Task["build"].invoke
   end
 end
