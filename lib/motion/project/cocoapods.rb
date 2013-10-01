@@ -178,7 +178,7 @@ module Motion::Project
       FileUtils.mkdir_p(resources_dir)
       resources.each do |file|
         begin
-          FileUtils.cp_r file, resources_dir
+          FileUtils.cp_r file, resources_dir if file.exist?
         rescue ArgumentError => exc
           unless exc.message =~ /same file/
             raise
@@ -221,6 +221,7 @@ module Motion::Project
         f.each_line do |line|
           if matched = line.match(/install_resource\s+(.*)/)
             path = (matched[1].strip)[1..-2]
+            path.sub!("${BUILD_DIR}/${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}", ".build")
             resources << Pathname.new(@config.project_dir) + PODS_ROOT + path
           end
         end
