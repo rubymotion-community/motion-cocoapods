@@ -94,6 +94,12 @@ module Motion::Project
 
       cp_config.integrate_targets = false
       cp_config.installation_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
+
+      @config.vendor_project(PODS_ROOT, :xcode,
+        :target => 'Pods',
+        :headers_dir => 'Headers',
+        :products => %w{ libPods.a }
+      )
     end
 
     # DSL
@@ -140,12 +146,6 @@ module Motion::Project
     def link_project
       install_resources
       copy_headers
-
-      @config.vendor_project(PODS_ROOT, :xcode,
-        :target => 'Pods',
-        :headers_dir => 'Headers',
-        :products => %w{ libPods.a }
-      )
 
       if ldflags = pods_xcconfig.to_hash['OTHER_LDFLAGS']
         lib_search_paths = pods_xcconfig.to_hash['LIBRARY_SEARCH_PATHS'] || ""
