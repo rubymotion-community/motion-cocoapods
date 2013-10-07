@@ -57,6 +57,7 @@ module Motion::Project
           need_install = true
         end
         if ENV['COCOCAPODS_UPDATE']
+          $stderr.puts '[!] The COCOCAPODS_UPDATE env variable has been deprecated, use the `rake pod:update` task instead.'.red
           pods.install!(true)
         else
           pods.install! if need_install
@@ -84,13 +85,7 @@ module Motion::Project
       @podfile = Pod::Podfile.new {}
       @podfile.platform((App.respond_to?(:template) ? App.template : :ios), config.deployment_target)
       cp_config.podfile = @podfile
-
-      if !!ENV['COCOAPODS_NO_UPDATE']
-        $stderr.puts '[!] The COCOAPODS_NO_UPDATE env variable has been deprecated, please us COCOAPODS_NO_REPO_UPDATE instead.'
-        cp_config.skip_repo_update = true
-      else
-        cp_config.skip_repo_update = !!ENV['COCOAPODS_NO_REPO_UPDATE']
-      end
+      cp_config.skip_repo_update = true
 
       if ENV['COCOAPODS_VERBOSE']
         cp_config.verbose = true
@@ -238,17 +233,14 @@ module Motion::Project
     def resources_dir
       Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
     end
-
-    def inspect
-      ''
-    end
   end
 end
 
 namespace :pod do
   desc "Update outdated pods and build objects"
   task :update do
-    ENV['COCOCAPODS_UPDATE'] = "true"
-    Rake::Task["build"].invoke
+    pods = App.config.pods
+    pods.cp_config.silent = false
+    pods.install!(true)
   end
 end

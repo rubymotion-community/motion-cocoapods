@@ -42,16 +42,16 @@ dependencies, build them and link them to your application executable.
 
 == Options
 
-On every build, CocoaPods will try to connect to GitHub and update the
-specification repos in +~/.cocoapods+, if you want to skip this then set the
-+COCOAPODS_NO_UPDATE+ env variable.
+To explicitely update the specification repositories before an installation of
+the dependencies, you can use the following +pod+ commands:
 
-    $ rake COCOAPODS_NO_REPO_UPDATE=1
+    $ pod repo update
+    $ pod repo update [specific repo]
 
 If a Podfile.lock file exists, this will be used to install specific versions.
-To update the versions, you can set the +COCOCAPODS_UPDATE+ env variable.
+To update the versions, use the following rake task:
 
-    $ rake COCOCAPODS_UPDATE=1
+    $ rake pod:update
 
 By default the output of CocoaPods doing its work is silenced. If, however, you
 would like to see the output, you can set the +COCOAPODS_VERBOSE+ env variable.
