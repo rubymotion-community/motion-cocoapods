@@ -18,5 +18,5 @@ Gem::Specification.new do |spec|
   spec.homepage    = 'http://www.rubymotion.com'
   spec.files       = Dir.glob('lib/**/*.rb') << 'README.rdoc' << 'LICENSE'
 
-  spec.add_runtime_dependency 'cocoapods', '>= 0.17.0'
+  spec.add_runtime_dependency 'cocoapods', '>= 0.25.0'
 end
