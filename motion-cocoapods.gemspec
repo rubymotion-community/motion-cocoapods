@@ -4,7 +4,8 @@ module ::Motion; module Project; class Config
 end; end; end
 
 require 'date'
-require File.expand_path('../lib/motion/project/version', __FILE__)
+$:.unshift File.expand_path('../lib', __FILE__)
+require 'motion/project/version'
 
 Gem::Specification.new do |spec|
   spec.name        = 'motion-cocoapods'
