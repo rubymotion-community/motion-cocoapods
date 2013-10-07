@@ -40,6 +40,12 @@ dependencies, build them and link them to your application executable.
 
 == Options
 
+On every build, CocoaPods will try to connect to GitHub and update the
+specification repos in +~/.cocoapods+, if you want to skip this then set the
++COCOAPODS_NO_UPDATE+ env variable.
+
+    $ rake COCOAPODS_NO_REPO_UPDATE=1
+
 If a Podfile.lock file exists, this will be used to install specific versions.
 To update the versions, you can set the +COCOCAPODS_UPDATE+ env variable.
 
@@ -49,12 +55,6 @@ By default the output of CocoaPods doing its work is silenced. If, however, you
 would like to see the output, you can set the +COCOAPODS_VERBOSE+ env variable.
 
     $ rake COCOAPODS_VERBOSE=1
-
-On every build, CocoaPods will try to update the specification repos in
-+~/.cocoapods+, if you want to skip this then set the +COCOAPODS_NO_UPDATE+ env
-variable.
-
-    $ rake COCOAPODS_NO_UPDATE=1
 
 
 == Contribute

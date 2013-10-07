@@ -85,7 +85,13 @@ module Motion::Project
       @podfile.platform((App.respond_to?(:template) ? App.template : :ios), config.deployment_target)
       cp_config.podfile = @podfile
 
-      cp_config.skip_repo_update = ENV['COCOAPODS_NO_UPDATE']
+      if !!ENV['COCOAPODS_NO_UPDATE']
+        $stderr.puts '[!] The COCOAPODS_NO_UPDATE env variable has been deprecated, please us COCOAPODS_NO_REPO_UPDATE instead.'
+        cp_config.skip_repo_update = true
+      else
+        cp_config.skip_repo_update = !!ENV['COCOAPODS_NO_REPO_UPDATE']
+      end
+
       if ENV['COCOAPODS_VERBOSE']
         cp_config.verbose = true
       else
