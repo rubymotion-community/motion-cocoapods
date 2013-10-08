@@ -148,6 +148,7 @@ module Motion::Project
       install_resources
       copy_headers
 
+      # TODO replace this all once Xcodeproj has the proper xcconfig parser.
       if ldflags = pods_xcconfig.to_hash['OTHER_LDFLAGS']
         lib_search_paths = pods_xcconfig.to_hash['LIBRARY_SEARCH_PATHS'] || ""
         lib_search_paths.gsub!('$(PODS_ROOT)', "-L#{@config.project_dir}/#{PODS_ROOT}")
