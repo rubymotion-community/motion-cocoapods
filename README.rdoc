@@ -34,6 +34,8 @@ dependency manager.
        end
      end
 
+3. If this is the first time using CocoaPods on your machine, you'll need to run <tt>pod setup</tt>.
+
 That's all. The build system will properly download the given pods and their
 dependencies, build them and link them to your application executable.
 
