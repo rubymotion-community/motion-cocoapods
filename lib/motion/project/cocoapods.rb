@@ -54,6 +54,7 @@ module Motion::Project
         begin
           need_install = analyzer.needs_install?
         rescue
+          # TODO fix this, see https://github.com/HipByte/motion-cocoapods/issues/57#issuecomment-17810809
           need_install = true
         end
         if ENV['COCOCAPODS_UPDATE']
@@ -243,5 +244,16 @@ namespace :pod do
     pods = App.config.pods
     pods.cp_config.silent = false
     pods.install!(true)
+  end
+end
+
+namespace :clean do
+  # This gets appended to the already existing clean:all task.
+  task :all do
+    dir = Motion::Project::CocoaPods::PODS_ROOT
+    if File.exist?(dir)
+      App.info 'Delete', dir
+      rm_rf dir
+    end
   end
 end
