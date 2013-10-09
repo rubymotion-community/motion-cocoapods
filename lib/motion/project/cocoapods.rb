@@ -43,36 +43,6 @@ module Motion::Project
     end
   end
 
-  class App
-    class << self
-      def build_with_cocoapods(platform, opts = {})
-        _config = config
-        pods = _config.pods
-        # We run the update/install commands only if necessary.
-        cp_config = Pod::Config.instance
-        analyzer = Pod::Installer::Analyzer.new(cp_config.sandbox, pods.podfile, cp_config.lockfile)
-        begin
-          need_install = analyzer.needs_install?
-        rescue
-          # TODO fix this, see https://github.com/HipByte/motion-cocoapods/issues/57#issuecomment-17810809
-          need_install = true
-        end
-        if ENV['COCOCAPODS_UPDATE']
-          $stderr.puts '[!] The COCOCAPODS_UPDATE env variable has been deprecated, use the `rake pod:update` task instead.'.red
-          pods.install!(true)
-        else
-          pods.install! if need_install
-        end
-        pods.link_project
-
-        build_without_cocoapods(platform, opts)
-      end
-
-      alias_method "build_without_cocoapods", "build"
-      alias_method "build", "build_with_cocoapods"
-    end
-  end
-
   #---------------------------------------------------------------------------#
 
   class CocoaPods
@@ -87,74 +57,30 @@ module Motion::Project
       @podfile.platform((App.respond_to?(:template) ? App.template : :ios), config.deployment_target)
       cp_config.podfile = @podfile
       cp_config.skip_repo_update = true
-
-      if ENV['COCOAPODS_VERBOSE']
-        cp_config.verbose = true
-      else
-        cp_config.silent = true
-      end
-
+      cp_config.verbose = !!ENV['COCOAPODS_VERBOSE']
       cp_config.integrate_targets = false
       cp_config.installation_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
 
+      configure_project
+    end
+
+    # Adds the Pods project to the RubyMotion config as a vendored project and
+    #
+    def configure_project
       @config.vendor_project(PODS_ROOT, :xcode,
         :target => 'Pods',
         :headers_dir => 'Headers',
         :products => %w{ libPods.a }
       )
-    end
 
-    # DSL
-    #-------------------------------------------------------------------------#
-
-    def pod(*name_and_version_requirements, &block)
-      @podfile.pod(*name_and_version_requirements, &block)
-    end
-
-    # Deprecated.
-    def dependency(*name_and_version_requirements, &block)
-      @podfile.dependency(*name_and_version_requirements, &block)
-    end
-
-    def post_install(&block)
-      @podfile.post_install(&block)
-    end
-
-    # Installation & Linking
-    #-------------------------------------------------------------------------#
-
-    def pods_installer
-      @installer ||= Pod::Installer.new(cp_config.sandbox, @podfile, cp_config.lockfile)
-    end
-
-    # Performs a CocoaPods Installation.
-    #
-    # For now we only support one Pods target, this will have to be expanded
-    # once we work on more spec support.
-    #
-    # Let RubyMotion re-generate the BridgeSupport file whenever the list of
-    # installed pods changes.
-    #
-    def install!(update=false)
-      pods_installer.update_mode = update
-      pods_installer.install!
-      if bridgesupport_file.exist? && !pods_installer.installed_specs.empty?
-        bridgesupport_file.delete
-      end
-    end
-
-    # Adds the Pods project to the RubyMotion config as a vendored project.
-    #
-    def link_project
-      install_resources
-      copy_headers
+      @config.resources_dirs << resources_dir.to_s
 
       # TODO replace this all once Xcodeproj has the proper xcconfig parser.
-      if ldflags = pods_xcconfig.to_hash['OTHER_LDFLAGS']
-        lib_search_paths = pods_xcconfig.to_hash['LIBRARY_SEARCH_PATHS'] || ""
+      if (xcconfig = self.pods_xcconfig) && ldflags = xcconfig.to_hash['OTHER_LDFLAGS']
+        lib_search_paths = xcconfig.to_hash['LIBRARY_SEARCH_PATHS'] || ""
         lib_search_paths.gsub!('$(PODS_ROOT)', "-L#{@config.project_dir}/#{PODS_ROOT}")
 
-        framework_search_paths = pods_xcconfig.to_hash['FRAMEWORK_SEARCH_PATHS']
+        framework_search_paths = xcconfig.to_hash['FRAMEWORK_SEARCH_PATHS']
         if framework_search_paths
           framework_search_paths.scan(/\"([^\"]+)\"/) do |search_path|
             path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
@@ -177,6 +103,49 @@ module Motion::Project
       end
     end
 
+    # DSL
+    #-------------------------------------------------------------------------#
+
+    def pod(*name_and_version_requirements, &block)
+      @podfile.pod(*name_and_version_requirements, &block)
+    end
+
+    # Deprecated.
+    def dependency(*name_and_version_requirements, &block)
+      @podfile.dependency(*name_and_version_requirements, &block)
+    end
+
+    def post_install(&block)
+      @podfile.post_install(&block)
+    end
+
+    # Installation
+    #-------------------------------------------------------------------------#
+
+    def pods_installer
+      @installer ||= Pod::Installer.new(cp_config.sandbox, @podfile, cp_config.lockfile)
+    end
+
+    # Performs a CocoaPods Installation.
+    #
+    # For now we only support one Pods target, this will have to be expanded
+    # once we work on more spec support.
+    #
+    # Let RubyMotion re-generate the BridgeSupport file whenever the list of
+    # installed pods changes.
+    #
+    def install!(update)
+      pods_installer.update_mode = update
+      pods_installer.install!
+      if bridgesupport_file.exist? && !pods_installer.installed_specs.empty?
+        bridgesupport_file.delete
+      end
+
+      install_resources
+      copy_cocoapods_env_and_prefix_headers
+    end
+
+    # TODO this probably breaks in cases like resource bundles etc, need to test.
     def install_resources
       FileUtils.mkdir_p(resources_dir)
       resources.each do |file|
@@ -188,10 +157,9 @@ module Motion::Project
           end
         end
       end
-      @config.resources_dirs << resources_dir.to_s
     end
 
-    def copy_headers
+    def copy_cocoapods_env_and_prefix_headers
       headers = Dir.glob(["#{PODS_ROOT}/*.h", "#{PODS_ROOT}/*.pch"])
       headers.each do |header|
         src = File.basename(header)
@@ -209,13 +177,18 @@ module Motion::Project
       Pod::Config.instance
     end
 
+    def analyzer
+      cp_config = Pod::Config.instance
+      Pod::Installer::Analyzer.new(cp_config.sandbox, @podfile, cp_config.lockfile)
+    end
+
     def bridgesupport_file
       Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.bridgesupport'
     end
 
     def pods_xcconfig
       path = Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.xcconfig'
-      Xcodeproj::Config.new(path)
+      Xcodeproj::Config.new(path) if path.exist?
     end
 
     def resources
@@ -239,10 +212,29 @@ module Motion::Project
 end
 
 namespace :pod do
-  desc "Update outdated pods and build objects"
-  task :update do
+  task :update_spec_repos do
+    if ENV['COCOCAPODS_NO_UPDATE']
+      $stderr.puts '[!] The COCOCAPODS_NO_UPDATE env variable has been deprecated, use COCOAPODS_NO_REPO_UPDATE instead.'
+      ENV['COCOAPODS_NO_REPO_UPDATE'] = '1'
+    end
+    Pod::SourcesManager.update(nil, true) unless ENV['COCOAPODS_NO_REPO_UPDATE']
+  end
+
+  desc "Download and integrate newly added pods"
+  task :install => :update_spec_repos do
     pods = App.config.pods
-    pods.cp_config.silent = false
+    begin
+      need_install = pods.analyzer.needs_install?
+    rescue
+      # TODO fix this, see https://github.com/HipByte/motion-cocoapods/issues/57#issuecomment-17810809
+      need_install = true
+    end
+    pods.install!(false) if need_install
+  end
+
+  desc "Update outdated pods"
+  task :update => :update_spec_repos do
+    pods = App.config.pods
     pods.install!(true)
   end
 end
