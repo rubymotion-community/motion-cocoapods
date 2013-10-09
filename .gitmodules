@@ -1,9 +1,0 @@
-[submodule "spec/fixtures/spec-repos/master"]
-	path = spec/fixtures/spec-repos/master
-	url = git://github.com/CocoaPods/Specs.git
-[submodule "spec/fixtures/ASIHTTPRequest"]
-	path = spec/fixtures/ASIHTTPRequest
-	url = git://github.com/pokeb/asi-http-request.git
-[submodule "spec/fixtures/Reachability"]
-	path = spec/fixtures/Reachability
-	url = git://github.com/CocoaPods/unmaintained-pod-Reachability.git

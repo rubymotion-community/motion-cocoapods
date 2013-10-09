@@ -4,14 +4,14 @@ require 'bundler/setup'
 require 'pathname'
 ROOT = Pathname.new(File.expand_path('../../', __FILE__))
 
-$:.unshift("/Library/RubyMotion/lib")
+$:.unshift(ENV['RUBYMOTION_CHECKOUT'] || "/Library/RubyMotion/lib")
 $:.unshift((ROOT + 'lib').to_s)
 
 require 'bacon'
 Bacon.summary_at_exit
 
 require 'rake'
-require 'motion/project'
+require 'motion/project/template/ios'
 
 require 'cocoapods'
 require 'motion-cocoapods'
@@ -34,13 +34,6 @@ module SpecHelper
 
     def teardown_temporary_directory
       temporary_directory.rmtree if temporary_directory.exist?
-    end
-
-    def self.extended(base)
-      base.before do
-        teardown_temporary_directory
-        setup_temporary_directory
-      end
     end
   end
 end
