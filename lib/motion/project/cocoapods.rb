@@ -232,7 +232,8 @@ namespace :pod do
       $stderr.puts '[!] The COCOCAPODS_NO_UPDATE env variable has been deprecated, use COCOAPODS_NO_REPO_UPDATE instead.'
       ENV['COCOAPODS_NO_REPO_UPDATE'] = '1'
     end
-    Pod::SourcesManager.update(nil, true) unless ENV['COCOAPODS_NO_REPO_UPDATE']
+    show_output = !ENV['COCOAPODS_NO_REPO_UPDATE_OUTPUT']
+    Pod::SourcesManager.update(nil, show_output) unless ENV['COCOAPODS_NO_REPO_UPDATE']
   end
 
   desc "Download and integrate newly added pods"
