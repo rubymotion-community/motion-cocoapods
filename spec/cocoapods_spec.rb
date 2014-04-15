@@ -52,6 +52,10 @@ describe "motion-cocoapods" do
     @podfile.target_definition_list.first.platform.deployment_target.to_s.should == '5.0'
   end
 
+  it "sets the Rakefile as the location of the Podfile" do
+    @podfile.defined_in_file.should == Pathname.new(Rake.original_dir) + 'Rakefile'
+  end
+
   before do
     unless @ran_install
       Rake::Task['pod:install'].invoke

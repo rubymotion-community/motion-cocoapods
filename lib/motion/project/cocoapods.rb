@@ -68,7 +68,7 @@ module Motion::Project
     def initialize(config)
       @config = config
 
-      @podfile = Pod::Podfile.new {}
+      @podfile = Pod::Podfile.new(Pathname.new(Rake.original_dir) + 'Rakefile') {}
       @podfile.platform((App.respond_to?(:template) ? App.template : :ios), config.deployment_target)
       cp_config.podfile = @podfile
       cp_config.skip_repo_update = true
