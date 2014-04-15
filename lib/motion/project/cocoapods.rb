@@ -237,6 +237,8 @@ namespace :pod do
 
   desc "Download and integrate newly added pods"
   task :install => :update_spec_repos do
+    # TODO Should ideally not have to be controller manually.
+    Pod::UserInterface.title_level = 1
     pods = App.config.pods
     begin
       need_install = pods.analyzer.needs_install?
@@ -244,6 +246,8 @@ namespace :pod do
       # TODO fix this, see https://github.com/HipByte/motion-cocoapods/issues/57#issuecomment-17810809
       need_install = true
     end
+    # TODO Should ideally not have to be controller manually.
+    Pod::UserInterface.title_level = 0
     pods.install!(false) if need_install
   end
 
