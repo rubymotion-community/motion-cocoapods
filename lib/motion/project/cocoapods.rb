@@ -68,7 +68,7 @@ module Motion::Project
     def initialize(config)
       @config = config
 
-      @podfile = Pod::Podfile.new {}
+      @podfile = Pod::Podfile.new(Pathname.new(Rake.original_dir) + 'Rakefile') {}
       @podfile.platform((App.respond_to?(:template) ? App.template : :ios), config.deployment_target)
       cp_config.podfile = @podfile
       cp_config.skip_repo_update = true
@@ -150,7 +150,7 @@ module Motion::Project
     # installed pods changes.
     #
     def install!(update)
-      pods_installer.update_mode = update
+      pods_installer.update = update
       pods_installer.install!
       if bridgesupport_file.exist? && !pods_installer.installed_specs.empty?
         bridgesupport_file.delete
@@ -238,6 +238,8 @@ namespace :pod do
 
   desc "Download and integrate newly added pods"
   task :install => :update_spec_repos do
+    # TODO Should ideally not have to be controller manually.
+    Pod::UserInterface.title_level = 1
     pods = App.config.pods
     begin
       need_install = pods.analyzer.needs_install?
@@ -245,6 +247,8 @@ namespace :pod do
       # TODO fix this, see https://github.com/HipByte/motion-cocoapods/issues/57#issuecomment-17810809
       need_install = true
     end
+    # TODO Should ideally not have to be controller manually.
+    Pod::UserInterface.title_level = 0
     pods.install!(false) if need_install
   end
 
