@@ -150,7 +150,7 @@ module Motion::Project
     # installed pods changes.
     #
     def install!(update)
-      pods_installer.update_mode = update
+      pods_installer.update = update
       pods_installer.install!
       if bridgesupport_file.exist? && !pods_installer.installed_specs.empty?
         bridgesupport_file.delete
