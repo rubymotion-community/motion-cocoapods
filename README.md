@@ -13,7 +13,7 @@ $ [sudo] gem install motion-cocoapods
 Or if you use Bundler:
 
 ```ruby
-gem 'motion-cocoapods', '~> 1.4.0'
+gem 'motion-cocoapods', '~> 1.4.1'
 ```
 
 
