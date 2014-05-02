@@ -174,13 +174,17 @@ module Motion::Project
       end
     end
 
+    HEADERS_ROOT = File.join(PODS_ROOT, 'Headers')
+
     def copy_cocoapods_env_and_prefix_headers
       headers = Dir.glob(["#{PODS_ROOT}/*.h", "#{PODS_ROOT}/*.pch"])
       headers.each do |header|
         src = File.basename(header)
         dst = src.sub(/\.pch$/, '.h')
-        unless File.exist?("#{PODS_ROOT}/Headers/____#{dst}")
-          FileUtils.cp("#{PODS_ROOT}/#{src}", "#{PODS_ROOT}/Headers/____#{dst}")
+        dst_path = File.join(HEADERS_ROOT, "____#{dst}")
+        unless File.exist?(dst_path)
+          FileUtils.mkdir_p(HEADERS_ROOT)
+          FileUtils.cp(File.join(PODS_ROOT, src), dst_path)
         end
       end
     end
