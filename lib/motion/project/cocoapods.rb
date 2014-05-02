@@ -91,20 +91,10 @@ module Motion::Project
       @config.resources_dirs << resources_dir.to_s
 
       # TODO replace this all once Xcodeproj has the proper xcconfig parser.
-      if (xcconfig = self.pods_xcconfig) && ldflags = xcconfig.to_hash['OTHER_LDFLAGS']
-        lib_search_paths = xcconfig.to_hash['LIBRARY_SEARCH_PATHS'] || ""
+      if (xcconfig = self.pods_xcconfig_hash) && ldflags = xcconfig['OTHER_LDFLAGS']
+        lib_search_paths = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
         lib_search_paths.gsub!('$(PODS_ROOT)', "-L#{@config.project_dir}/#{PODS_ROOT}")
 
-        framework_search_paths = xcconfig.to_hash['FRAMEWORK_SEARCH_PATHS']
-        if framework_search_paths
-          framework_search_paths.scan(/\"([^\"]+)\"/) do |search_path|
-            path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
-            @config.framework_search_paths << path if path
-          end
-        end
-
-        @config.frameworks.concat(ldflags.scan(/-framework\s+([^\s]+)/).map { |m| m[0] })
-        @config.frameworks.uniq!
         @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |m|
           if lib_search_paths.length == 0 || File.exist?("/usr/lib/lib#{m[0]}.dylib")
             "/usr/lib/lib#{m[0]}.dylib"
@@ -112,9 +102,34 @@ module Motion::Project
             "#{lib_search_paths} -ObjC -l#{m[0]}"
           end
         })
+        @config.libs.uniq!
+
+        framework_search_paths = []
+        if xcconfig['FRAMEWORK_SEARCH_PATHS']
+          xcconfig['FRAMEWORK_SEARCH_PATHS'].scan(/\"([^\"]+)\"/) do |search_path|
+            path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
+            framework_search_paths << path if path
+          end
+        end
+        @config.framework_search_paths.concat(framework_search_paths)
+
+        frameworks = ldflags.scan(/-framework\s+([^\s]+)/).map { |m| m[0] }
+        @config.frameworks.concat(frameworks)
+        @config.frameworks.uniq!
+
+        if @config.deploy_platform == 'MacOSX'
+          framework_search_paths.each do |framework_search_path|
+            frameworks.each do |framework|
+              path = File.join(framework_search_path, "#{framework}.framework")
+              if File.exist?(path)
+                @config.embedded_frameworks << path
+              end
+            end
+          end
+        end
+
         @config.weak_frameworks.concat(ldflags.scan(/-weak_framework\s+([^\s]+)/).map { |m| m[0] })
         @config.weak_frameworks.uniq!
-        @config.libs.uniq!
       end
     end
 
@@ -161,11 +176,12 @@ module Motion::Project
     end
 
     # TODO this probably breaks in cases like resource bundles etc, need to test.
+    #
     def install_resources
       FileUtils.mkdir_p(resources_dir)
       resources.each do |file|
         begin
-          FileUtils.cp_r file, resources_dir if file.exist?
+          FileUtils.cp_r(file, resources_dir) if file.exist?
         rescue ArgumentError => exc
           unless exc.message =~ /same file/
             raise
@@ -210,6 +226,15 @@ module Motion::Project
       Xcodeproj::Config.new(path) if path.exist?
     end
 
+    def pods_xcconfig_hash
+      if xcconfig = pods_xcconfig
+        xcconfig.to_hash
+      end
+    end
+
+    # Do not copy `.framework` bundles, these should be handled through RM's
+    # `embedded_frameworks` config attribute.
+    #
     def resources
       resources = []
       File.open(Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods-resources.sh') { |f|
@@ -217,7 +242,9 @@ module Motion::Project
           if matched = line.match(/install_resource\s+(.*)/)
             path = (matched[1].strip)[1..-2]
             path.sub!("${BUILD_DIR}/${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}", ".build")
-            resources << Pathname.new(@config.project_dir) + PODS_ROOT + path
+            unless File.extname(path) == '.framework'
+              resources << Pathname.new(@config.project_dir) + PODS_ROOT + path
+            end
           end
         end
       }
