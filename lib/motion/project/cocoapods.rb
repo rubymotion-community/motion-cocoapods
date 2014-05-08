@@ -93,7 +93,9 @@ module Motion::Project
       # TODO replace this all once Xcodeproj has the proper xcconfig parser.
       if (xcconfig = self.pods_xcconfig_hash) && ldflags = xcconfig['OTHER_LDFLAGS']
         lib_search_paths = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
-        lib_search_paths.gsub!('$(PODS_ROOT)', "-L#{@config.project_dir}/#{PODS_ROOT}")
+        lib_search_paths = lib_search_paths.split(/"\s/).map do |path|
+          '-L ' << path.gsub('$(PODS_ROOT)', File.join(@config.project_dir, PODS_ROOT))
+        end.join(' ')
 
         @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |m|
           if lib_search_paths.length == 0 || File.exist?("/usr/lib/lib#{m[0]}.dylib")
