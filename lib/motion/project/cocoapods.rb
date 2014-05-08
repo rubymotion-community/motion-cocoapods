@@ -113,18 +113,33 @@ module Motion::Project
             framework_search_paths << path if path
           end
         end
-        @config.framework_search_paths.concat(framework_search_paths)
-
         frameworks = ldflags.scan(/-framework\s+([^\s]+)/).map { |m| m[0] }
-        @config.frameworks.concat(frameworks)
-        @config.frameworks.uniq!
 
-        if @config.deploy_platform == 'MacOSX'
+        case @config.deploy_platform
+        when 'MacOSX'
+          @config.framework_search_paths.concat(framework_search_paths)
+          @config.frameworks.concat(frameworks)
+          @config.frameworks.uniq!
+
           framework_search_paths.each do |framework_search_path|
             frameworks.each do |framework|
               path = File.join(framework_search_path, "#{framework}.framework")
               if File.exist?(path)
                 @config.embedded_frameworks << path
+              end
+            end
+          end
+        when 'iPhoneOS'
+          # If we would really specify these as ‘frameworks’ then the linker
+          # would not link the archive into the application, because it does not
+          # see any references to any of the symbols in the archive. Treating it
+          # as a static library (which it is) with `-force_load` fixes this.
+          #
+          framework_search_paths.each do |framework_search_path|
+            frameworks.each do |framework|
+              path = File.join(framework_search_path, "#{framework}.framework")
+              if File.exist?(path)
+                @config.libs << "-force_load '#{File.join(path, framework)}'"
               end
             end
           end
