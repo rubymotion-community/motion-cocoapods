@@ -259,6 +259,7 @@ module Motion::Project
           if matched = line.match(/install_resource\s+(.*)/)
             path = (matched[1].strip)[1..-2]
             path.sub!("${BUILD_DIR}/${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}", ".build")
+            path.sub!("${BUILT_PRODUCTS_DIR}", ".build")
             unless File.extname(path) == '.framework'
               resources << Pathname.new(@config.project_dir) + PODS_ROOT + path
             end
