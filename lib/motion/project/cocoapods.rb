@@ -107,10 +107,19 @@ module Motion::Project
         @config.libs.uniq!
 
         framework_search_paths = []
-        if xcconfig['FRAMEWORK_SEARCH_PATHS']
-          xcconfig['FRAMEWORK_SEARCH_PATHS'].scan(/\"([^\"]+)\"/) do |search_path|
+        if search_paths = xcconfig['FRAMEWORK_SEARCH_PATHS']
+          search_paths = search_paths.strip
+          unless search_paths.empty?
+            search_paths.scan(/\"([^\"]+)\"/) do |search_path|
             path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
             framework_search_paths << path if path
+          end
+            # If we couldn't parse any search paths, then presumably nothing was properly quoted, so
+            # fallback to just assuming the whole value is one path.
+            if framework_search_paths.empty?
+              path = search_paths.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
+              framework_search_paths << path if path
+            end
           end
         end
         frameworks = ldflags.scan(/-framework\s+([^\s]+)/).map { |m| m[0] }
