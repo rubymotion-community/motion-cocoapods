@@ -111,9 +111,9 @@ module Motion::Project
           search_paths = search_paths.strip
           unless search_paths.empty?
             search_paths.scan(/\"([^\"]+)\"/) do |search_path|
-            path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
-            framework_search_paths << path if path
-          end
+              path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
+              framework_search_paths << path if path
+            end
             # If we couldn't parse any search paths, then presumably nothing was properly quoted, so
             # fallback to just assuming the whole value is one path.
             if framework_search_paths.empty?
@@ -131,10 +131,13 @@ module Motion::Project
           @config.frameworks.uniq!
 
           framework_search_paths.each do |framework_search_path|
-            frameworks.each do |framework|
+            frameworks.reject! do |framework|
               path = File.join(framework_search_path, "#{framework}.framework")
               if File.exist?(path)
                 @config.embedded_frameworks << path
+                true
+              else
+                false
               end
             end
           end
@@ -145,14 +148,20 @@ module Motion::Project
           # as a static library (which it is) with `-force_load` fixes this.
           #
           framework_search_paths.each do |framework_search_path|
-            frameworks.each do |framework|
+            frameworks.reject! do |framework|
               path = File.join(framework_search_path, "#{framework}.framework")
               if File.exist?(path)
                 @config.libs << "-force_load '#{File.join(path, framework)}'"
+                true
+              else
+                false
               end
             end
           end
         end
+
+        @config.frameworks.concat(frameworks)
+        @config.frameworks.uniq!
 
         @config.weak_frameworks.concat(ldflags.scan(/-weak_framework\s+([^\s]+)/).map { |m| m[0] })
         @config.weak_frameworks.uniq!
