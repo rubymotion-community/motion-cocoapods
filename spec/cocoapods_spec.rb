@@ -65,7 +65,7 @@ describe "motion-cocoapods" do
   end
 
   it "adds all the required frameworks and libraries" do
-    @config.frameworks.sort.should == %w{ CoreGraphics Foundation UIKit }
+    @config.frameworks.sort.should == %w{ CoreData CoreGraphics Foundation MobileCoreServices Security SystemConfiguration UIKit }
     @config.libs.sort.should == %w{ /usr/lib/libxml2.dylib }
   end
 
