@@ -34,8 +34,8 @@ module Motion::Project
   class Config
     variable :pods
 
-    def pods(&block)
-      @pods ||= Motion::Project::CocoaPods.new(self)
+    def pods(vendor_options = {}, &block)
+      @pods ||= Motion::Project::CocoaPods.new(self, vendor_options)
       if block
         @pods.instance_eval(&block)
       end
@@ -65,8 +65,9 @@ module Motion::Project
 
     attr_accessor :podfile
 
-    def initialize(config)
+    def initialize(config, vendor_options)
       @config = config
+      @vendor_options = vendor_options
 
       @podfile = Pod::Podfile.new(Pathname.new(Rake.original_dir) + 'Rakefile') {}
       @podfile.platform((App.respond_to?(:template) ? App.template : :ios), config.deployment_target)
@@ -82,11 +83,11 @@ module Motion::Project
     # Adds the Pods project to the RubyMotion config as a vendored project and
     #
     def configure_project
-      @config.vendor_project(PODS_ROOT, :xcode,
+      @config.vendor_project(PODS_ROOT, :xcode, {
         :target => 'Pods',
         :headers_dir => 'Headers',
         :products => %w{ libPods.a }
-      )
+      }.merge(@vendor_options))
 
       @config.resources_dirs << resources_dir.to_s
 
