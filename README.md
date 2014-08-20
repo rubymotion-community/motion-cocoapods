@@ -69,6 +69,21 @@ $ rake pod:update
 
 ## Options
 
+If necessary, you can pass `vendor_project` options to the `pods` configuration
+method. These options are described [here](http://www.rubymotion.com/developer-center/guides/project-management/#_vendoring_3rd_party_libraries).
+For instance, to only generate BridgeSupport metadata for a single pod, which
+might be needed if a dependency that you’re not using directly is causing issues
+(such as C++ headers), you can specify that like so:
+
+```ruby
+   Motion::Project::App.setup do |app|
+     app.pods :headers_dir => 'Headers/AFNetworking' do
+       pod 'AFNetworking'
+       # ...
+     end
+   end
+```
+
 By default the output of CocoaPods doing its work is silenced. If, however, you
 would like to see the output, you can set the `COCOAPODS_VERBOSE` env variable:
 
