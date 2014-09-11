@@ -47,7 +47,7 @@ module Motion::Project
     class << self
       def build_with_cocoapods(platform, opts = {})
         unless File.exist?(CocoaPods::PODS_ROOT)
-          $stderr.puts "[!] No CocoaPods dependencies found in #{CocoaPods::PODS_ROOT}, run the `rake pod:install` task."
+          $stderr.puts "[!] No CocoaPods dependencies found in #{CocoaPods::PODS_ROOT}, run the `[bundle exec] rake pod:install` task."
           exit 1
         end
         build_without_cocoapods(platform, opts)
