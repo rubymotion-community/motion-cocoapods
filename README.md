@@ -53,7 +53,7 @@ To tell motion-cocoapods to download your dependencies, run the following rake
 task:
 
 ```
-$ rake pod:install
+$ [bundle exec] rake pod:install
 ```
 
 That’s all. The build system will properly download the given pods and their
@@ -64,7 +64,7 @@ If the `vendor/Podfile.lock` file exists, this will be used to install specific
 versions. To update the versions, use the following rake task:
 
 ```
-$ rake pod:update
+$ [bundle exec] rake pod:update
 ```
 
 ## Options
@@ -88,14 +88,14 @@ By default the output of CocoaPods doing its work is silenced. If, however, you
 would like to see the output, you can set the `COCOAPODS_VERBOSE` env variable:
 
 ```
-$ rake pod:install COCOAPODS_VERBOSE=1
+$ [bundle exec] rake pod:install COCOAPODS_VERBOSE=1
 ```
 
 As part of the install and update tasks, the specification repostories will get
 updated. You can disable this with the `COCOAPODS_NO_REPO_UPDATE` env variable:
 
 ```
-$ rake pod:install COCOAPODS_NO_REPO_UPDATE=1
+$ [bundle exec] rake pod:install COCOAPODS_NO_REPO_UPDATE=1
 ```
 
 
@@ -106,13 +106,13 @@ $ rake pod:install COCOAPODS_NO_REPO_UPDATE=1
    ```
    $ git clone git://github.com/HipByte/motion-cocoapods.git
    $ cd motion-cocoapods
-   $ rake bootstrap
+   $ [bundle exec] rake bootstrap
    ```
 
 2. Verify that all the tests are passing.
 
    ```
-   $ rake spec
+   $ [bundle exec] rake spec
    ```
 
 3. Create your patch and send a
