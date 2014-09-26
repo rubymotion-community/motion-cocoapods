@@ -19,5 +19,5 @@ Gem::Specification.new do |spec|
   spec.license     = 'MIT'
   spec.files       = Dir.glob('lib/**/*.rb') << 'README.md' << 'LICENSE'
 
-  spec.add_runtime_dependency 'cocoapods', '>= 0.32.1'
+  spec.add_runtime_dependency 'cocoapods', '>= 0.34'
 end
