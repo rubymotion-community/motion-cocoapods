@@ -23,7 +23,7 @@ describe "motion-cocoapods" do
       setup_temporary_directory
 
       Pod::Config.instance.silent = true
-      #Pod::Config.instance.verbose = true
+      #ENV['COCOAPODS_VERBOSE'] = '1'
 
       context = self
 
@@ -65,7 +65,9 @@ describe "motion-cocoapods" do
   end
 
   it "adds all the required frameworks and libraries" do
-    @config.frameworks.sort.should == %w{ CoreData CoreGraphics Foundation MobileCoreServices Security SystemConfiguration UIKit }
+    rm_default = %w{ CoreGraphics Foundation UIKit }
+    pods_xcconfig = %w{ "CoreData" "CoreGraphics" "MobileCoreServices" "Security" "SystemConfiguration" }
+    @config.frameworks.sort.should == (rm_default + pods_xcconfig).sort
     @config.libs.sort.should == %w{ /usr/lib/libxml2.dylib }
   end
 
@@ -86,8 +88,15 @@ describe "motion-cocoapods" do
   it "adds Pods.xcodeproj as a vendor project, accepting vendor_project options" do
     project = @config.vendor_projects.last
     project.path.should == 'vendor/Pods'
-    project.opts[:headers_dir].should == 'Headers/AFKissXMLRequestOperation'
-    project.opts[:products].should == %w{ libPods.a }
+    project.opts[:headers_dir].should == 'Headers/AFKissXMLRequestOperation' # because that's set in before block
+    project.opts[:products].should == %w{
+      libPods-AFIncrementalStore.a
+      libPods-AFKissXMLRequestOperation.a
+      libPods-AFNetworking.a
+      libPods-InflectorKit.a
+      libPods-KissXML.a
+      libPods-TransformerKit.a
+    }
   end
 
   it "runs the post_install hook" do

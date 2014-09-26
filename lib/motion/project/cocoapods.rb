@@ -62,6 +62,7 @@ module Motion::Project
 
   class CocoaPods
     PODS_ROOT = 'vendor/Pods'
+    SUPPORT_FILES = File.join(PODS_ROOT, 'Target Support Files/Pods')
 
     attr_accessor :podfile
 
@@ -73,9 +74,12 @@ module Motion::Project
       @podfile.platform((App.respond_to?(:template) ? App.template : :ios), config.deployment_target)
       cp_config.podfile = @podfile
       cp_config.skip_repo_update = true
-      cp_config.verbose = !!ENV['COCOAPODS_VERBOSE']
       cp_config.integrate_targets = false
       cp_config.installation_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
+
+      if cp_config.verbose = !!ENV['COCOAPODS_VERBOSE']
+        require 'claide'
+      end
 
       configure_project
     end
@@ -83,12 +87,6 @@ module Motion::Project
     # Adds the Pods project to the RubyMotion config as a vendored project and
     #
     def configure_project
-      @config.vendor_project(PODS_ROOT, :xcode, {
-        :target => 'Pods',
-        :headers_dir => 'Headers',
-        :products => %w{ libPods.a }
-      }.merge(@vendor_options))
-
       @config.resources_dirs << resources_dir.to_s
 
       # TODO replace this all once Xcodeproj has the proper xcconfig parser.
@@ -98,14 +96,28 @@ module Motion::Project
           '-L ' << path.gsub('$(PODS_ROOT)', File.join(@config.project_dir, PODS_ROOT))
         end.join(' ')
 
-        @config.libs.concat(ldflags.scan(/-l([^\s]+)/).map { |m|
-          if lib_search_paths.length == 0 || File.exist?("/usr/lib/lib#{m[0]}.dylib")
-            "/usr/lib/lib#{m[0]}.dylib"
+        # Collect the Pod products
+        pods_libs = []
+
+        @config.libs.concat(ldflags.scan(/-l"?([^\s"]+)"?/).map { |m|
+          lib_name = m[0]
+          next if lib_name.nil?
+          if lib_name.start_with?('Pods-')
+            pods_libs << lib_name
+            nil
+          elsif lib_search_paths.length == 0 || File.exist?("/usr/lib/lib#{lib_name}.dylib")
+            "/usr/lib/lib#{lib_name}.dylib"
           else
-            "#{lib_search_paths} -ObjC -l#{m[0]}"
+            "#{lib_search_paths} -ObjC -l#{lib_name}"
           end
-        })
+        }.compact)
         @config.libs.uniq!
+
+        @config.vendor_project(PODS_ROOT, :xcode, {
+          :target => 'Pods',
+          :headers_dir => 'Headers/Public',
+          :products => pods_libs.map { |lib_name| "lib#{lib_name}.a" }
+        }.merge(@vendor_options))
 
         framework_search_paths = []
         if search_paths = xcconfig['FRAMEWORK_SEARCH_PATHS']
@@ -258,7 +270,7 @@ module Motion::Project
     end
 
     def pods_xcconfig
-      path = Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.xcconfig'
+      path = Pathname.new(@config.project_dir) + SUPPORT_FILES + 'Pods.release.xcconfig'
       Xcodeproj::Config.new(path) if path.exist?
     end
 
@@ -273,7 +285,7 @@ module Motion::Project
     #
     def resources
       resources = []
-      File.open(Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods-resources.sh') { |f|
+      File.open(Pathname.new(@config.project_dir) + SUPPORT_FILES + 'Pods-resources.sh') { |f|
         f.each_line do |line|
           if matched = line.match(/install_resource\s+(.*)/)
             path = (matched[1].strip)[1..-2]
