@@ -338,6 +338,20 @@ namespace :pod do
   end
 end
 
+task :clean do
+  dir = Motion::Project::CocoaPods::PODS_ROOT
+  if File.exist?(dir)
+    Dir.chdir(dir) do
+      if App::VERBOSE
+        sh "/usr/bin/xcodebuild clean"
+      else
+        App.info 'Clean', dir
+        `/usr/bin/xcodebuild clean 2>&1`
+      end
+    end
+  end
+end
+
 namespace :clean do
   # This gets appended to the already existing clean:all task.
   task :all do
