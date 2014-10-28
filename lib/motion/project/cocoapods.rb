@@ -113,12 +113,6 @@ module Motion::Project
         }.compact)
         @config.libs.uniq!
 
-        @config.vendor_project(PODS_ROOT, :xcode, {
-          :target => 'Pods',
-          :headers_dir => 'Headers/Public',
-          :products => pods_libs.map { |lib_name| "lib#{lib_name}.a" }
-        }.merge(@vendor_options))
-
         framework_search_paths = []
         if search_paths = xcconfig['FRAMEWORK_SEARCH_PATHS']
           search_paths = search_paths.strip
@@ -155,6 +149,7 @@ module Motion::Project
             end
           end
         when 'iPhoneOS'
+          pods_root = cp_config.installation_root + 'Pods'
           # If we would really specify these as ‘frameworks’ then the linker
           # would not link the archive into the application, because it does not
           # see any references to any of the symbols in the archive. Treating it
@@ -165,6 +160,13 @@ module Motion::Project
               path = File.join(framework_search_path, "#{framework}.framework")
               if File.exist?(path)
                 @config.libs << "-force_load '#{File.join(path, framework)}'"
+                # This is needed until (and if) CocoaPods links framework
+                # headers into `Headers/Public` by default:
+                #
+                #   https://github.com/CocoaPods/CocoaPods/pull/2722
+                #
+                header_dir = Pathname.new(path) + 'Headers'
+                header_dirs << header_dir.realpath.relative_path_from(pods_root).to_s
                 true
               else
                 false
@@ -178,6 +180,12 @@ module Motion::Project
 
         @config.weak_frameworks.concat(ldflags.scan(/-weak_framework\s+([^\s]+)/).map { |m| m[0] })
         @config.weak_frameworks.uniq!
+
+        @config.vendor_project(PODS_ROOT, :xcode, {
+          :target => 'Pods',
+          :headers_dir => "{#{header_dirs.join(',')}}",
+          :products => pods_libs.map { |lib_name| "lib#{lib_name}.a" }
+        }.merge(@vendor_options))
       end
     end
 

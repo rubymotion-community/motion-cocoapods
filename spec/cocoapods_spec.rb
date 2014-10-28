@@ -31,7 +31,7 @@ describe "motion-cocoapods" do
       @config.project_dir = temporary_directory.to_s
       @config.deployment_target = '6.0'
       @config.instance_eval do
-        pods :headers_dir => 'Headers/AFKissXMLRequestOperation' do
+        pods do
           context.podfile = @podfile
 
           pod 'AFNetworking', '1.3.2'
@@ -98,14 +98,15 @@ describe "motion-cocoapods" do
     (Pathname.new(@config.project_dir) + 'vendor/Podfile.lock').should.exist
   end
 
-  it "adds Pods.xcodeproj as a vendor project, accepting vendor_project options" do
+  it "adds Pods.xcodeproj as a vendor project with header dirs including all vendored_frameworks" do
     project = @config.vendor_projects.last
     project.path.should == 'vendor/Pods'
-    project.opts[:headers_dir].should == 'Headers/AFKissXMLRequestOperation' # because that's set in before block
+    project.opts[:headers_dir].should == '{Headers/Public,HockeySDK/Vendor/CrashReporter.framework/Versions/A/Headers}'
     project.opts[:products].should == %w{
       libPods-AFIncrementalStore.a
       libPods-AFKissXMLRequestOperation.a
       libPods-AFNetworking.a
+      libPods-HockeySDK.a
       libPods-InflectorKit.a
       libPods-KissXML.a
       libPods-TransformerKit.a
