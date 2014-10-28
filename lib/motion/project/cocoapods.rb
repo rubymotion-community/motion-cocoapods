@@ -123,7 +123,7 @@ module Motion::Project
         if search_paths = xcconfig['FRAMEWORK_SEARCH_PATHS']
           search_paths = search_paths.strip
           unless search_paths.empty?
-            search_paths.scan(/\"([^\"]+)\"/) do |search_path|
+            search_paths.scan(/"([^"]+)"/) do |search_path|
               path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
               framework_search_paths << path if path
             end
@@ -135,14 +135,14 @@ module Motion::Project
             end
           end
         end
-        frameworks = ldflags.scan(/-framework\s+([^\s]+)/).map { |m| m[0] }
+
+        header_dirs = ['Headers/Public']
+        frameworks = ldflags.scan(/-framework\s+"?([^\s"]+)"?/).map { |m| m[0] }
 
         case @config.deploy_platform
         when 'MacOSX'
           @config.framework_search_paths.concat(framework_search_paths)
-          @config.frameworks.concat(frameworks)
-          @config.frameworks.uniq!
-
+          @config.framework_search_paths.uniq!
           framework_search_paths.each do |framework_search_path|
             frameworks.reject! do |framework|
               path = File.join(framework_search_path, "#{framework}.framework")

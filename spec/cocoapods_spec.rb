@@ -29,7 +29,7 @@ describe "motion-cocoapods" do
 
       @config = App.config
       @config.project_dir = temporary_directory.to_s
-      @config.deployment_target = '5.0'
+      @config.deployment_target = '6.0'
       @config.instance_eval do
         pods :headers_dir => 'Headers/AFKissXMLRequestOperation' do
           context.podfile = @podfile
@@ -37,6 +37,7 @@ describe "motion-cocoapods" do
           pod 'AFNetworking', '1.3.2'
           pod 'AFIncrementalStore', '0.5.1' # depends on AFNetworking ~> 1.3.2, but 1.3.3 exists.
           pod 'AFKissXMLRequestOperation'
+          pod 'HockeySDK'
 
           post_install do |installer|
             context.installer_rep_from_post_install_hook = installer
@@ -49,7 +50,7 @@ describe "motion-cocoapods" do
   end
 
   it "pods deployment target should equal to project deployment target" do
-    @podfile.target_definition_list.first.platform.deployment_target.to_s.should == '5.0'
+    @podfile.target_definition_list.first.platform.deployment_target.to_s.should == '6.0'
   end
 
   it "sets the Rakefile as the location of the Podfile" do
@@ -64,12 +65,24 @@ describe "motion-cocoapods" do
     end
   end
 
-  it "adds all the required frameworks and libraries" do
+  it "adds all the system frameworks and libraries" do
     rm_default = %w{ CoreGraphics Foundation UIKit }
-    pods_xcconfig = %w{ "CoreData" "CoreGraphics" "MobileCoreServices" "Security" "SystemConfiguration" }
-    @config.frameworks.sort.should == (rm_default + pods_xcconfig).sort
-    @config.libs.sort.should == %w{ /usr/lib/libxml2.dylib }
+    afnetworking = %w{ CoreGraphics MobileCoreServices Security SystemConfiguration }
+    afincrementalstore = %w{ CoreData }
+    hockey = %w{ AssetsLibrary CoreText CoreGraphics MobileCoreServices QuartzCore QuickLook Security SystemConfiguration UIKit }
+    @config.frameworks.sort.should == (rm_default + afnetworking + afincrementalstore + hockey).uniq.sort
+    @config.libs.should.include '/usr/lib/libxml2.dylib'
   end
+
+  it "adds a prebuilt (static library) framework to the linked libs" do
+    @config.libs.should.include "-force_load '#{File.join(@config.project_dir, 'vendor/Pods/HockeySDK/Vendor/CrashReporter.framework/CrashReporter')}'"
+  end
+
+  # TODO add test for OS X with embedded frameworks or iOS >= 8 that has dynamic libraries
+  #
+  #it "adds a prebuilt framework to the embedded_frameworks" do
+    #@config.embedded_frameworks.should == [File.join(@config.project_dir, 'vendor/Pods/HockeySDK/Vendor/CrashReporter.framework')]
+  #end
 
   it "installs the Pods to vendor/Pods" do
     (Pathname.new(@config.project_dir) + 'vendor/Pods/AFNetworking').should.exist
@@ -104,6 +117,7 @@ describe "motion-cocoapods" do
       "AFIncrementalStore",
       "AFKissXMLRequestOperation",
       "AFNetworking",
+      "HockeySDK",
       "InflectorKit",
       "KissXML",
       "TransformerKit"
