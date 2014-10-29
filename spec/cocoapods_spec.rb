@@ -37,7 +37,7 @@ describe "motion-cocoapods" do
           pod 'AFNetworking', '1.3.2'
           pod 'AFIncrementalStore', '0.5.1' # depends on AFNetworking ~> 1.3.2, but 1.3.3 exists.
           pod 'AFKissXMLRequestOperation'
-          pod 'HockeySDK'
+          pod 'HockeySDK', '> 3.6.0', '< 3.6.2' # so 3.6.1, just testing that multiple requirements works
 
           post_install do |installer|
             context.installer_rep_from_post_install_hook = installer
@@ -144,5 +144,24 @@ describe "motion-cocoapods" do
     @installer.config.instance_variable_set(:@lockfile, nil)
     @config.pods.install!(false)
     bs_file.should.not.exist
+  end
+
+  it "provides a list of the activated pods on #inspect, which is used in `rake config`" do
+    @config.pods.inspect.should == [
+      'AFIncrementalStore (0.5.1)',
+      'AFKissXMLRequestOperation (0.0.1)',
+      'AFNetworking (1.3.2)',
+      'HockeySDK (3.6.1)',
+      'InflectorKit (0.0.1)',
+      'KissXML (5.0)',
+      'TransformerKit (0.5.3)',
+      'TransformerKit/Core (0.5.3)',
+      'TransformerKit/Cryptography (0.5.3)',
+      'TransformerKit/Data (0.5.3)',
+      'TransformerKit/Date (0.5.3)',
+      'TransformerKit/Image (0.5.3)',
+      'TransformerKit/JSON (0.5.3)',
+      'TransformerKit/String (0.5.3)',
+    ].inspect
   end
 end

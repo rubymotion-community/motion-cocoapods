@@ -1,4 +1,4 @@
-# Copyright (c) 2012-2013, Laurent Sansonetti <lrz@hipbyte.com>
+# Copyright (c) 2012-2014, Laurent Sansonetti <lrz@hipbyte.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -263,6 +263,15 @@ module Motion::Project
 
     # Helpers
     #-------------------------------------------------------------------------#
+
+    # This is the output that gets shown in `rake config`, so it should be
+    # short and sweet.
+    #
+    def inspect
+      cp_config.lockfile.to_hash['PODS'].map do |pod|
+        pod.is_a?(Hash) ? pod.keys.first : pod
+      end.inspect
+    end
 
     def cp_config
       Pod::Config.instance
