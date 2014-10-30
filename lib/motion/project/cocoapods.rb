@@ -70,8 +70,17 @@ module Motion::Project
       @config = config
       @vendor_options = vendor_options
 
+      case @config.deploy_platform
+      when 'MacOSX'
+        platform = :osx
+      when 'iPhoneOS'
+        platform = :ios
+      else
+        App.fail "Unknown CocoaPods platform: #{@config.deploy_platform}"
+      end
+
       @podfile = Pod::Podfile.new(Pathname.new(Rake.original_dir) + 'Rakefile') {}
-      @podfile.platform((App.respond_to?(:template) ? App.template : :ios), config.deployment_target)
+      @podfile.platform(platform, config.deployment_target)
       cp_config.podfile = @podfile
       cp_config.skip_repo_update = true
       cp_config.integrate_targets = false
