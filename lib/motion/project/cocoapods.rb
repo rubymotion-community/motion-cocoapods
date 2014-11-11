@@ -201,6 +201,10 @@ module Motion::Project
     # DSL
     #-------------------------------------------------------------------------#
 
+    def source(source)
+      @podfile.source(source)
+    end
+
     def pod(*name_and_version_requirements, &block)
       @podfile.pod(*name_and_version_requirements, &block)
     end
