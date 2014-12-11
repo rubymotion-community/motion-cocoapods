@@ -35,6 +35,7 @@ describe "motion-cocoapods" do
           context.podfile = @podfile
 
           pod 'AFNetworking', '1.3.2'
+          pod 'TransformerKit', '0.5.3'
           pod 'AFIncrementalStore', '0.5.1' # depends on AFNetworking ~> 1.3.2, but 1.3.3 exists.
           pod 'AFKissXMLRequestOperation'
           pod 'HockeySDK', '> 3.6.0', '< 3.6.2' # so 3.6.1, just testing that multiple requirements works
