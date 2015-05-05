@@ -326,7 +326,7 @@ module Motion::Project
           end
         end
       }
-      resources
+      resources.uniq
     end
 
     def resources_dir
