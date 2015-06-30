@@ -250,7 +250,26 @@ module Motion::Project
       FileUtils.mkdir_p(resources_dir)
       resources.each do |file|
         begin
-          FileUtils.cp_r(file, resources_dir) if file.exist?
+          if file.exist?
+            #Special behaviour for bundles to ensure files can be overwritten on subsequent builds
+            if file.to_s =~ /\.bundle/
+                #This is a hacky solution, I'm just copying to a hardcoded tmp dir to chmod_r without
+                # affecting the source directory permissions.
+                last_path_part = file.to_s.split(File::SEPARATOR)[-1]
+                tmp_pods_dir = "/tmp/motion-cocoapods"
+                FileUtils.mkdir_p(tmp_pods_dir)
+                FileUtils.cp_r(file, tmp_pods_dir) if file.exist?
+                FileUtils.chmod_R(0755, tmp_pods_dir)
+                FileUtils.cp_r(tmp_pods_dir + '/' + last_path_part, resources_dir)
+            else
+              FileUtils.cp_r(file, resources_dir)
+            end
+          else
+            #You could/should raise here, it's a matter of whether the calling code can then choose to ignore just that exception and continue
+            #installing other pods, currently that doesn't seem possible
+            puts "#{file} does not exist or could not be resolved"
+          end
+
         rescue ArgumentError => exc
           unless exc.message =~ /same file/
             raise
