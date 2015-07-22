@@ -247,6 +247,7 @@ module Motion::Project
     # TODO this probably breaks in cases like resource bundles etc, need to test.
     #
     def install_resources
+      FileUtils.rm_rf(resources_dir)
       FileUtils.mkdir_p(resources_dir)
       resources.each do |file|
         begin
