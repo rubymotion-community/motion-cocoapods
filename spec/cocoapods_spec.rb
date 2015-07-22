@@ -15,7 +15,6 @@ describe "motion-cocoapods" do
 
   def podfile=(podfile); @podfile = podfile; end
   def installer=(installer); @installer = installer; end
-  def installer_rep_from_post_install_hook=(installer); @installer_rep_from_post_install_hook = installer; end
 
   before do
     unless @ran_install
@@ -40,13 +39,14 @@ describe "motion-cocoapods" do
           pod 'AFKissXMLRequestOperation'
           pod 'HockeySDK', '> 3.6.0', '< 3.6.2' # so 3.6.1, just testing that multiple requirements works
 
-          post_install do |installer|
-            context.installer_rep_from_post_install_hook = installer
-          end
-
           context.installer = pods_installer
         end
       end
+
+      @installed_pods_name = nil
+      Pod::HooksManager.register('motion_cocoapods_spec', :post_install) { |installer|
+        @installed_pods_name = installer.pod_targets.map(&:name) if installer
+      }
     end
   end
 
@@ -115,7 +115,8 @@ describe "motion-cocoapods" do
   end
 
   it "runs the post_install hook" do
-    @installer_rep_from_post_install_hook.pods.map(&:name).should == [
+    Pod::HooksManager.run(:post_install, @installer)
+    @installed_pods_name.should == [
       "AFIncrementalStore",
       "AFKissXMLRequestOperation",
       "AFNetworking",
