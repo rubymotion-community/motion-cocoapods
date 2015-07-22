@@ -112,6 +112,10 @@ module Motion::Project
           lib_name = m[0]
           next if lib_name.nil?
           if lib_name.start_with?('Pods-')
+            # For CocoaPods 0.37.x or below. This block is marked as deprecated.
+            pods_libs << lib_name
+            nil
+          elsif !File.exist?("/usr/lib/lib#{lib_name}.dylib")
             pods_libs << lib_name
             nil
           elsif lib_search_paths.length == 0 || File.exist?("/usr/lib/lib#{lib_name}.dylib")
