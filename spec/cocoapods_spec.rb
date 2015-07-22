@@ -15,7 +15,6 @@ describe "motion-cocoapods" do
 
   def podfile=(podfile); @podfile = podfile; end
   def installer=(installer); @installer = installer; end
-  def installer_rep_from_post_install_hook=(installer); @installer_rep_from_post_install_hook = installer; end
 
   before do
     unless @ran_install
@@ -39,10 +38,6 @@ describe "motion-cocoapods" do
           pod 'AFIncrementalStore', '0.5.1' # depends on AFNetworking ~> 1.3.2, but 1.3.3 exists.
           pod 'AFKissXMLRequestOperation'
           pod 'HockeySDK', '> 3.6.0', '< 3.6.2' # so 3.6.1, just testing that multiple requirements works
-
-          post_install do |installer|
-            context.installer_rep_from_post_install_hook = installer
-          end
 
           context.installer = pods_installer
         end
@@ -112,18 +107,6 @@ describe "motion-cocoapods" do
       libKissXML.a
       libTransformerKit.a
     }
-  end
-
-  it "runs the post_install hook" do
-    @installer_rep_from_post_install_hook.pods.map(&:name).should == [
-      "AFIncrementalStore",
-      "AFKissXMLRequestOperation",
-      "AFNetworking",
-      "HockeySDK",
-      "InflectorKit",
-      "KissXML",
-      "TransformerKit"
-    ]
   end
 
   it "removes Pods.bridgesupport whenever the PODS section of Podfile.lock changes" do
