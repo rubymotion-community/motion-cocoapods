@@ -240,10 +240,6 @@ module Motion::Project
     def install!(update)
       pods_installer.update = update
       pods_installer.install!
-      if bridgesupport_file.exist? && !pods_installer.installed_specs.empty?
-        bridgesupport_file.delete
-      end
-
       install_resources
       copy_cocoapods_env_and_prefix_headers
     end
@@ -297,10 +293,6 @@ module Motion::Project
     def analyzer
       cp_config = Pod::Config.instance
       Pod::Installer::Analyzer.new(cp_config.sandbox, @podfile, cp_config.lockfile)
-    end
-
-    def bridgesupport_file
-      Pathname.new(@config.project_dir) + PODS_ROOT + 'Pods.bridgesupport'
     end
 
     def pods_xcconfig

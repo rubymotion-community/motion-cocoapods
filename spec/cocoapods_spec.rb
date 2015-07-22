@@ -109,27 +109,6 @@ describe "motion-cocoapods" do
     }
   end
 
-  it "removes Pods.bridgesupport whenever the PODS section of Podfile.lock changes" do
-    bs_file = @config.pods.bridgesupport_file
-    bs_file.open('w') { |f| f.write 'ORIGINAL CONTENT' }
-    lock_file = @installer.config.lockfile
-
-    # Even if another section changes, it doesn't remove Pods.bridgesupport
-    lockfile_data = lock_file.to_hash
-    lockfile_data['DEPENDENCIES'] = []
-    Pod::Lockfile.new(lockfile_data).write_to_disk(@installer.config.sandbox.manifest.defined_in_file)
-    @config.pods.install!(false)
-    bs_file.read.should == 'ORIGINAL CONTENT'
-
-    # If the PODS section changes, then Pods.bridgesupport is removed
-    lockfile_data = lock_file.to_hash
-    lockfile_data['PODS'] = []
-    Pod::Lockfile.new(lockfile_data).write_to_disk(@installer.config.sandbox.manifest.defined_in_file)
-    @installer.config.instance_variable_set(:@lockfile, nil)
-    @config.pods.install!(false)
-    bs_file.should.not.exist
-  end
-
   it "provides a list of the activated pods on #inspect, which is used in `rake config`" do
     @config.pods.inspect.should == [
       'AFIncrementalStore (0.5.1)',
