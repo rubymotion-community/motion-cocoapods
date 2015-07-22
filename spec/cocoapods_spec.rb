@@ -104,13 +104,13 @@ describe "motion-cocoapods" do
     project.path.should == 'vendor/Pods'
     project.opts[:headers_dir].should == '{Headers/Public,HockeySDK/Vendor/CrashReporter.framework/Versions/A/Headers}'
     project.opts[:products].should == %w{
-      libPods-AFIncrementalStore.a
-      libPods-AFKissXMLRequestOperation.a
-      libPods-AFNetworking.a
-      libPods-HockeySDK.a
-      libPods-InflectorKit.a
-      libPods-KissXML.a
-      libPods-TransformerKit.a
+      libAFIncrementalStore.a
+      libAFKissXMLRequestOperation.a
+      libAFNetworking.a
+      libHockeySDK.a
+      libInflectorKit.a
+      libKissXML.a
+      libTransformerKit.a
     }
   end
 
