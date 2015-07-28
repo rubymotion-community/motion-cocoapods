@@ -38,6 +38,7 @@ describe "motion-cocoapods" do
           pod 'AFIncrementalStore', '0.5.1' # depends on AFNetworking ~> 1.3.2, but 1.3.3 exists.
           pod 'AFKissXMLRequestOperation'
           pod 'HockeySDK', '> 3.6.0', '< 3.6.2' # so 3.6.1, just testing that multiple requirements works
+          pod 'GoogleAnalytics', '3.13.0'
 
           context.installer = pods_installer
         end
@@ -120,6 +121,7 @@ describe "motion-cocoapods" do
       "AFIncrementalStore",
       "AFKissXMLRequestOperation",
       "AFNetworking",
+      "GoogleAnalytics",
       "HockeySDK",
       "InflectorKit",
       "KissXML",
@@ -132,6 +134,7 @@ describe "motion-cocoapods" do
       'AFIncrementalStore (0.5.1)',
       'AFKissXMLRequestOperation (0.0.1)',
       'AFNetworking (1.3.2)',
+      'GoogleAnalytics (3.13.0)',
       'HockeySDK (3.6.1)',
       'InflectorKit (0.0.1)',
       'KissXML (5.0)',
