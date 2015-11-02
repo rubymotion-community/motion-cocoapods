@@ -174,13 +174,13 @@ module Motion::Project
           # If we would really specify these as ‘frameworks’ then the linker
           # would not link the archive into the application, because it does not
           # see any references to any of the symbols in the archive. Treating it
-          # as a static library (which it is) with `-force_load` fixes this.
+          # as a static library (which it is) with `-ObjC` fixes this.
           #
           framework_search_paths.each do |framework_search_path|
             frameworks.reject! do |framework|
               path = File.join(framework_search_path, "#{framework}.framework")
               if File.exist?(path)
-                @config.libs << "-force_load '#{File.join(path, framework)}'"
+                @config.libs << "-ObjC '#{File.join(path, framework)}'"
                 # This is needed until (and if) CocoaPods links framework
                 # headers into `Headers/Public` by default:
                 #
