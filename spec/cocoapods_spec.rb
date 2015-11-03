@@ -77,7 +77,7 @@ describe "motion-cocoapods" do
   end
 
   it "adds a prebuilt (static library) framework to the linked libs" do
-    @config.libs.should.include "-force_load '#{File.join(@config.project_dir, 'vendor/Pods/HockeySDK/Vendor/CrashReporter.framework/CrashReporter')}'"
+    @config.libs.should.include "-ObjC '#{File.join(@config.project_dir, 'vendor/Pods/HockeySDK/Vendor/CrashReporter.framework/CrashReporter')}'"
   end
 
   # TODO add test for OS X with embedded frameworks or iOS >= 8 that has dynamic libraries
