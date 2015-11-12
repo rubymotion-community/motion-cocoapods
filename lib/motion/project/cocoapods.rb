@@ -75,6 +75,10 @@ module Motion::Project
         platform = :osx
       when 'iPhoneOS'
         platform = :ios
+      when 'AppleTVOS'
+        platform = :tvos
+      when 'WatchOS'
+        platform = :watchos
       else
         App.fail "Unknown CocoaPods platform: #{@config.deploy_platform}"
       end
