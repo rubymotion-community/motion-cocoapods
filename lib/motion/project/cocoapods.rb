@@ -107,10 +107,14 @@ module Motion::Project
         lib_search_path_flags = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
         lib_search_paths = []
         lib_search_path_flags = lib_search_path_flags.split(/\s/).map do |path|
-          path = path.gsub(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, File.join(@config.project_dir, PODS_ROOT))
-          lib_search_paths << path.gsub('"', '')
-          '-L ' << path
-        end.join(' ')
+          if path =~ /(\$\(inherited\))|(\$\{inherited\})/
+            nil
+          else
+            path = path.gsub(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, File.join(@config.project_dir, PODS_ROOT))
+            lib_search_paths << path.gsub('"', '')
+            '-L ' << path
+          end
+        end.compact.join(' ')
 
         # Get the name of all static libraries that come pre-built with pods
         pre_built_static_libs = lib_search_paths.map do |path|
