@@ -121,7 +121,7 @@ $ [bundle exec] rake pod:install COCOAPODS_NO_REPO_UPDATE=1
 
 ## License
 
-  Copyright (c) 2012-2013, Laurent Sansonetti <lrz@hipbyte.com>
+  Copyright (c) 2012-2015, HipByte (lrz@hipbyte.com) and contributors.
   All rights reserved.
   
   Redistribution and use in source and binary forms, with or without
