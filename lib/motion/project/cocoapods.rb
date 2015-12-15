@@ -213,7 +213,8 @@ module Motion::Project
         @config.vendor_project(PODS_ROOT, :xcode, {
           :target => 'Pods',
           :headers_dir => "{#{header_dirs.join(',')}}",
-          :products => pods_libs.map { |lib_name| "lib#{lib_name}.a" }
+          :products => pods_libs.map { |lib_name| "lib#{lib_name}.a" },
+          :allow_empty_products => (pods_libs.empty? ? true : false),
         }.merge(@vendor_options))
       end
     end
