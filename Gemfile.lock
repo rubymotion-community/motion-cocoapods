@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    motion-cocoapods (1.7.7)
+    motion-cocoapods (1.7.8)
       cocoapods (>= 0.34)
 
 GEM
