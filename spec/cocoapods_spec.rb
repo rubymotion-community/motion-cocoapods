@@ -137,7 +137,7 @@ describe "motion-cocoapods" do
       'GoogleAnalytics (3.13.0)',
       'HockeySDK (3.6.1)',
       'InflectorKit (0.0.1)',
-      'KissXML (5.0)',
+      'KissXML (5.0.1)',
       'TransformerKit (0.5.3)',
       'TransformerKit/Core (0.5.3)',
       'TransformerKit/Cryptography (0.5.3)',
