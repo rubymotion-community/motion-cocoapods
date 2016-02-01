@@ -1,7 +1,7 @@
 # motion-cocoapods
 
 motion-cocoapods allows RubyMotion projects to integrate with the
-[CocoaPods](http://cocoapods.org) dependency manager.
+[CocoaPods](https://cocoapods.org/) dependency manager.
 
 
 ## Installation
@@ -28,7 +28,7 @@ gem 'motion-cocoapods'
    ```
 
 2. Still in the `Rakefile`, set your dependencies using the same language as
-   you would do in [Podfiles](http://docs.cocoapods.org/podfile.html).
+   you would do in [Podfiles](https://guides.cocoapods.org/syntax/podfile.html).
 
    ```ruby
    Motion::Project::App.setup do |app|
@@ -116,7 +116,7 @@ $ [bundle exec] rake pod:install COCOAPODS_NO_REPO_UPDATE=1
    ```
 
 3. Create your patch and send a
-   [pull-request](http://help.github.com/send-pull-requests/).
+   [pull-request](https://help.github.com/send-pull-requests/).
 
 
 ## License
