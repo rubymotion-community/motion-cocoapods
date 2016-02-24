@@ -69,7 +69,7 @@ describe "motion-cocoapods" do
   end
 
   it "adds all the system frameworks and libraries" do
-    rm_default = %w{ UIKit Foundation CoreGraphics CoreFoundation CFNetwork CoreAudio }
+    rm_default = %w{ CoreGraphics Foundation UIKit }
     afnetworking = %w{ CoreGraphics MobileCoreServices Security SystemConfiguration }
     afincrementalstore = %w{ CoreData }
     hockey = %w{ AssetsLibrary CoreText CoreGraphics MobileCoreServices QuartzCore QuickLook Security SystemConfiguration UIKit }
