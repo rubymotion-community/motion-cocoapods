@@ -62,7 +62,8 @@ module Motion::Project
 
   class CocoaPods
     PODS_ROOT = 'vendor/Pods'
-    SUPPORT_FILES = File.join(PODS_ROOT, 'Target Support Files/Pods')
+    TARGET_NAME = 'RubyMotion'
+    SUPPORT_FILES = File.join(PODS_ROOT, "Target Support Files/Pods-#{TARGET_NAME}")
 
     attr_accessor :podfile
 
@@ -85,9 +86,9 @@ module Motion::Project
 
       @podfile = Pod::Podfile.new(Pathname.new(Rake.original_dir) + 'Rakefile') {}
       @podfile.platform(platform, config.deployment_target)
+      @podfile.target(TARGET_NAME)
       cp_config.podfile = @podfile
       cp_config.skip_repo_update = true
-      cp_config.integrate_targets = false
       cp_config.installation_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
 
       if cp_config.verbose = !!ENV['COCOAPODS_VERBOSE']
@@ -227,7 +228,7 @@ module Motion::Project
     end
 
     def pod(*name_and_version_requirements, &block)
-      @podfile.pod(*name_and_version_requirements, &block)
+      @podfile.pod(*name_and_version_requirements)
     end
 
     # Deprecated.
@@ -256,6 +257,7 @@ module Motion::Project
     #
     def install!(update)
       pods_installer.update = update
+      pods_installer.installation_options.integrate_targets = false
       pods_installer.install!
       install_resources
       copy_cocoapods_env_and_prefix_headers
@@ -314,7 +316,7 @@ module Motion::Project
     end
 
     def pods_xcconfig
-      path = Pathname.new(@config.project_dir) + SUPPORT_FILES + 'Pods.release.xcconfig'
+      path = Pathname.new(@config.project_dir) + SUPPORT_FILES + "Pods-#{TARGET_NAME}.release.xcconfig"
       Xcodeproj::Config.new(path) if path.exist?
     end
 
@@ -329,7 +331,7 @@ module Motion::Project
     #
     def resources
       resources = []
-      File.open(Pathname.new(@config.project_dir) + SUPPORT_FILES + 'Pods-resources.sh') { |f|
+      File.open(Pathname.new(@config.project_dir) + SUPPORT_FILES + "Pods-#{TARGET_NAME}-resources.sh") { |f|
         f.each_line do |line|
           if matched = line.match(/install_resource\s+(.*)/)
             path = (matched[1].strip)[1..-2]
