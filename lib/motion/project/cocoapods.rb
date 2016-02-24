@@ -228,7 +228,7 @@ module Motion::Project
     end
 
     def pod(*name_and_version_requirements, &block)
-      @podfile.pod(*name_and_version_requirements)
+      @podfile.pod(*name_and_version_requirements, &block)
     end
 
     # Deprecated.
