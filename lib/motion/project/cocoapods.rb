@@ -212,7 +212,7 @@ module Motion::Project
         @config.weak_frameworks.uniq!
 
         @config.vendor_project(PODS_ROOT, :xcode, {
-          :target => 'Pods',
+          :target => "Pods-#{TARGET_NAME}",
           :headers_dir => "{#{header_dirs.join(',')}}",
           :products => pods_libs.map { |lib_name| "lib#{lib_name}.a" },
           :allow_empty_products => (pods_libs.empty? ? true : false),
