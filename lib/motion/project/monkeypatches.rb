@@ -1,4 +1,4 @@
-# Copyright (c) 2012, Laurent Sansonetti <lrz@hipbyte.com>
+# Copyright (c) 2012-2014, Laurent Sansonetti <lrz@hipbyte.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -22,19 +22,35 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-unless defined?(Motion::Project::Config)
-  raise "This file must be required within a RubyMotion project Rakefile."
+module Motion
+  module Project
+    class Config
+      variable :pods
+
+      def pods(vendor_options = {}, &block)
+        @pods ||= Motion::CocoaPods.new(self, vendor_options)
+        @pods.instance_eval(&block) if block
+        @pods
+      end
+    end
+
+    class App
+      class << self
+        def build_with_cocoapods(platform, opts = {})
+          unless File.exist?(CocoaPods::PODS_ROOT)
+            $stderr.puts(
+              "[!] No CocoaPods dependencies found in " \
+              "#{CocoaPods::PODS_ROOT}, run the " \
+              "`[bundle exec] rake pod:install` task."
+            )
+            exit 1
+          end
+          build_without_cocoapods(platform, opts)
+        end
+
+        alias_method "build_without_cocoapods", "build"
+        alias_method "build", "build_with_cocoapods"
+      end
+    end
+  end
 end
-
-# External dependencies
-require 'xcodeproj'
-require 'cocoapods'
-require 'yaml'
-
-# Gem files
-require 'motion/cocoapods/version'
-require 'motion/cocoapods/main'
-require 'tasks/cocoapods'
-
-# Monkeypatch Motion::Project to add CocoaPod methods
-require 'motion/project/monkeypatches'
