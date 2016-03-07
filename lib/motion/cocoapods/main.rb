@@ -22,44 +22,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-unless defined?(Motion::Project::Config)
-  raise "This file must be required within a RubyMotion project Rakefile."
-end
-
-require 'xcodeproj'
-require 'cocoapods'
-require 'yaml'
-
-module Motion::Project
-  class Config
-    variable :pods
-
-    def pods(vendor_options = {}, &block)
-      @pods ||= Motion::Project::CocoaPods.new(self, vendor_options)
-      if block
-        @pods.instance_eval(&block)
-      end
-      @pods
-    end
-  end
-
-  class App
-    class << self
-      def build_with_cocoapods(platform, opts = {})
-        unless File.exist?(CocoaPods::PODS_ROOT)
-          $stderr.puts "[!] No CocoaPods dependencies found in #{CocoaPods::PODS_ROOT}, run the `[bundle exec] rake pod:install` task."
-          exit 1
-        end
-        build_without_cocoapods(platform, opts)
-      end
-
-      alias_method "build_without_cocoapods", "build"
-      alias_method "build", "build_with_cocoapods"
-    end
-  end
-
-  #---------------------------------------------------------------------------#
-
+module Motion
   class CocoaPods
     PODS_ROOT = 'vendor/Pods'
     TARGET_NAME = 'RubyMotion'
@@ -347,50 +310,6 @@ module Motion::Project
 
     def resources_dir
       Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
-    end
-  end
-end
-
-namespace :pod do
-  task :update_spec_repos do
-    if ENV['COCOCAPODS_NO_UPDATE']
-      $stderr.puts '[!] The COCOCAPODS_NO_UPDATE env variable has been deprecated, use COCOAPODS_NO_REPO_UPDATE instead.'
-      ENV['COCOAPODS_NO_REPO_UPDATE'] = '1'
-    end
-    show_output = !ENV['COCOAPODS_NO_REPO_UPDATE_OUTPUT']
-    Pod::SourcesManager.update(nil, show_output) unless ENV['COCOAPODS_NO_REPO_UPDATE']
-  end
-
-  desc "Download and integrate newly added pods"
-  task :install => :update_spec_repos do
-    # TODO Should ideally not have to be controller manually.
-    Pod::UserInterface.title_level = 1
-    pods = App.config.pods
-    begin
-      need_install = pods.analyzer.needs_install?
-    rescue
-      # TODO fix this, see https://github.com/HipByte/motion-cocoapods/issues/57#issuecomment-17810809
-      need_install = true
-    end
-    # TODO Should ideally not have to be controller manually.
-    Pod::UserInterface.title_level = 0
-    pods.install!(false) if need_install
-  end
-
-  desc "Update outdated pods"
-  task :update => :update_spec_repos do
-    pods = App.config.pods
-    pods.install!(true)
-  end
-end
-
-namespace :clean do
-  # This gets appended to the already existing clean:all task.
-  task :all do
-    dir = Motion::Project::CocoaPods::PODS_ROOT
-    if File.exist?(dir)
-      App.info 'Delete', dir
-      rm_rf dir
     end
   end
 end

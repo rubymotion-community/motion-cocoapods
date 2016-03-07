@@ -22,7 +22,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-module Motion::Project
+module Motion
   class CocoaPods
     VERSION = '1.8.0.beta.2'
   end

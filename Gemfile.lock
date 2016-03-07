@@ -75,3 +75,6 @@ DEPENDENCIES
   motion-cocoapods!
   rake
   xcodeproj
+
+BUNDLED WITH
+   1.10.5

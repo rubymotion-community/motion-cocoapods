@@ -37,4 +37,3 @@ module SpecHelper
     end
   end
 end
-
