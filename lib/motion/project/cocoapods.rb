@@ -88,7 +88,6 @@ module Motion::Project
       @podfile.platform(platform, config.deployment_target)
       @podfile.target(TARGET_NAME)
       cp_config.podfile = @podfile
-      cp_config.skip_repo_update = true
       cp_config.installation_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
 
       if cp_config.verbose = !!ENV['COCOAPODS_VERBOSE']
