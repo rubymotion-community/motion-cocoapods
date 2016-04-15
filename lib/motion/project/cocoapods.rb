@@ -352,12 +352,7 @@ end
 
 namespace :pod do
   task :update_spec_repos do
-    if ENV['COCOCAPODS_NO_UPDATE']
-      $stderr.puts '[!] The COCOCAPODS_NO_UPDATE env variable has been deprecated, use COCOAPODS_NO_REPO_UPDATE instead.'
-      ENV['COCOAPODS_NO_REPO_UPDATE'] = '1'
-    end
-    show_output = !ENV['COCOAPODS_NO_REPO_UPDATE_OUTPUT']
-    Pod::SourcesManager.update(nil, show_output) unless ENV['COCOAPODS_NO_REPO_UPDATE']
+    $stderr.puts '[!] If you need to update CocoaPods repogitory to install newer libraries, please run "pod repo update" command before.'
   end
 
   desc "Download and integrate newly added pods"
