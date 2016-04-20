@@ -104,7 +104,7 @@ describe "motion-cocoapods" do
   it "adds Pods.xcodeproj as a vendor project with header dirs including all vendored_frameworks" do
     project = @config.vendor_projects.last
     project.path.should == 'vendor/Pods'
-    project.opts[:headers_dir].should == '{Headers/Public,HockeySDK/Vendor/CrashReporter.framework/Versions/A/Headers}'
+    project.opts[:headers_dir].should == '{Headers/Public}'
     project.opts[:products].should == %w{
       libAFIncrementalStore.a
       libAFKissXMLRequestOperation.a

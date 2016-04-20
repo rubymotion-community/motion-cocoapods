@@ -189,13 +189,6 @@ module Motion::Project
               path = File.join(framework_search_path, "#{framework}.framework")
               if File.exist?(path)
                 @config.libs << "-ObjC '#{File.join(path, framework)}'"
-                # This is needed until (and if) CocoaPods links framework
-                # headers into `Headers/Public` by default:
-                #
-                #   https://github.com/CocoaPods/CocoaPods/pull/2722
-                #
-                header_dir = Pathname.new(path) + 'Headers'
-                header_dirs << header_dir.realpath.relative_path_from(pods_root).to_s
                 true
               else
                 false
