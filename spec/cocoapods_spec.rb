@@ -40,6 +40,7 @@ describe "motion-cocoapods" do
           pod 'KissXML', '5.0.1'
           pod 'HockeySDK', '> 3.6.0', '< 3.6.2' # so 3.6.1, just testing that multiple requirements works
           pod 'GoogleAnalytics', '3.13.0'
+          pod 'GoogleMobileAds', '7.7.1'
 
           context.installer = pods_installer
         end
@@ -73,7 +74,8 @@ describe "motion-cocoapods" do
     afnetworking = %w{ CoreGraphics MobileCoreServices Security SystemConfiguration }
     afincrementalstore = %w{ CoreData }
     hockey = %w{ AssetsLibrary CoreText CoreGraphics MobileCoreServices QuartzCore QuickLook Security SystemConfiguration UIKit }
-    @config.frameworks.sort.should == (rm_default + afnetworking + afincrementalstore + hockey).uniq.sort
+    googleAds = %w{ AudioToolbox AVFoundation CoreGraphics CoreMedia CoreTelephony EventKit EventKitUI MediaPlayer MessageUI StoreKit SystemConfiguration }
+    @config.frameworks.sort.should == (rm_default + afnetworking + afincrementalstore + hockey + googleAds).uniq.sort
     @config.libs.should.include '/usr/lib/libxml2.dylib'
   end
 
@@ -114,6 +116,7 @@ describe "motion-cocoapods" do
       libKissXML.a
       libTransformerKit.a
     }
+    project.opts[:bridgesupport_cflags].should.include('Headers/Public/GoogleMobileAds')
   end
 
   it "runs the post_install hook" do
@@ -123,10 +126,11 @@ describe "motion-cocoapods" do
       "AFKissXMLRequestOperation",
       "AFNetworking",
       "GoogleAnalytics",
+      "GoogleMobileAds",
       "HockeySDK",
       "InflectorKit",
       "KissXML",
-      "TransformerKit"
+      "TransformerKit",
     ]
   end
 
@@ -136,6 +140,7 @@ describe "motion-cocoapods" do
       'AFKissXMLRequestOperation (0.0.1)',
       'AFNetworking (1.3.2)',
       'GoogleAnalytics (3.13.0)',
+      'GoogleMobileAds (7.7.1)',
       'HockeySDK (3.6.1)',
       'InflectorKit (0.0.1)',
       'KissXML (5.0.1)',
