@@ -24,6 +24,6 @@
 
 module Motion::Project
   class CocoaPods
-    VERSION = '1.8.0.beta.4'
+    VERSION = '1.8.0'
   end
 end
