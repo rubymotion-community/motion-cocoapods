@@ -107,7 +107,7 @@ module Motion::Project
         lib_search_path_flags = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
         lib_search_paths = []
         lib_search_path_flags = lib_search_path_flags.split(/\s/).map do |path|
-          if path =~ /(\$\(inherited\))|(\$\{inherited\})|(\$CONFIGURATION_BUILD_DIR)/
+          if path =~ /(\$\(inherited\))|(\$\{inherited\})|(\$CONFIGURATION_BUILD_DIR)|(\$PODS_CONFIGURATION_BUILD_DIR)/
             nil
           else
             path = path.gsub(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, File.join(@config.project_dir, PODS_ROOT))
