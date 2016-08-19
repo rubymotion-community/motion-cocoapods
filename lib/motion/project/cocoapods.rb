@@ -200,7 +200,7 @@ module Motion::Project
               end
             end
           end
-        when 'iPhoneOS'
+        when 'iPhoneOS', 'AppleTVOS', 'WatchOS'
           pods_root = cp_config.installation_root + 'Pods'
           # If we would really specify these as ‘frameworks’ then the linker
           # would not link the archive into the application, because it does not
