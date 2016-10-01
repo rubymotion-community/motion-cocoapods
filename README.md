@@ -1,5 +1,7 @@
 # motion-cocoapods
 
+[![Build Status](https://travis-ci.org/HipByte/motion-cocoapods.svg?branch=master)](https://travis-ci.org/HipByte/motion-cocoapods)
+
 motion-cocoapods allows RubyMotion projects to integrate with the
 [CocoaPods](https://cocoapods.org/) dependency manager.
 
