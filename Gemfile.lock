@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    motion-cocoapods (1.8.0)
+    motion-cocoapods (1.8.1)
       cocoapods (>= 1.0.0)
 
 GEM
@@ -77,4 +77,4 @@ DEPENDENCIES
   xcodeproj
 
 BUNDLED WITH
-   1.11.2
+   1.13.1
