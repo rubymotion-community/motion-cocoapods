@@ -93,14 +93,6 @@ would like to see the output, you can set the `COCOAPODS_VERBOSE` env variable:
 $ [bundle exec] rake pod:install COCOAPODS_VERBOSE=1
 ```
 
-As part of the install and update tasks, the specification repostories will get
-updated. You can disable this with the `COCOAPODS_NO_REPO_UPDATE` env variable:
-
-```
-$ [bundle exec] rake pod:install COCOAPODS_NO_REPO_UPDATE=1
-```
-
-
 ## Contribute
 
 1. Setup a local development environment.
