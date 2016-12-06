@@ -368,7 +368,7 @@ end
 
 namespace :pod do
   task :update_spec_repos do
-    $stderr.puts '[!] If you need to update CocoaPods repogitory to install newer libraries, please run "pod repo update" command before.'
+    $stderr.puts '[!] If you need to update CocoaPods repository to install newer libraries, please run "pod repo update" command before.'
   end
 
   desc "Download and integrate newly added pods"
