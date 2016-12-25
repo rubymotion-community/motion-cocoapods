@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   spec.author      = 'Laurent Sansonetti'
   spec.email       = 'lrz@hipbyte.com'
   spec.homepage    = 'http://www.rubymotion.com'
-  spec.license     = 'MIT'
+  spec.license     = 'BSD-2-Clause'
   spec.files       = Dir.glob('lib/**/*.rb') << 'README.md' << 'LICENSE'
 
   spec.add_runtime_dependency 'cocoapods', '>= 1.0.0'
