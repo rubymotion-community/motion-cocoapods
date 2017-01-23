@@ -230,7 +230,7 @@ module Motion::Project
           :target => "Pods-#{TARGET_NAME}",
           :headers_dir => "{#{header_dirs.join(',')}}",
           :products => pods_libs.map { |lib_name| "lib#{lib_name}.a" },
-          :allow_empty_products => (pods_libs.empty? ? true : false),
+          :allow_empty_products => pods_libs.empty?,
         }.merge(@vendor_options))
       end
     end
