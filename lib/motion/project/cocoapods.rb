@@ -28,7 +28,6 @@ end
 
 require 'xcodeproj'
 require 'cocoapods'
-require 'yaml'
 
 module Motion::Project
   class Config
