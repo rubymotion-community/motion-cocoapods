@@ -38,6 +38,7 @@ module Motion::Project
       if block
         @pods.instance_eval(&block)
       end
+      @pods.configure_project
       @pods
     end
   end
@@ -69,6 +70,7 @@ module Motion::Project
     def initialize(config, vendor_options)
       @config = config
       @vendor_options = vendor_options
+      @use_frameworks = false
 
       case @config.deploy_platform
       when 'MacOSX'
@@ -92,8 +94,6 @@ module Motion::Project
       if cp_config.verbose = !!ENV['COCOAPODS_VERBOSE']
         require 'claide'
       end
-
-      configure_project
     end
 
     # Adds the Pods project to the RubyMotion config as a vendored project and
@@ -101,6 +101,28 @@ module Motion::Project
     def configure_project
       @config.resources_dirs << resources_dir.to_s
 
+      if @use_frameworks
+        configure_project_frameworks
+      else
+        configure_project_static_libraries
+      end
+    end
+
+    def configure_project_frameworks
+      if (xcconfig = self.pods_xcconfig_hash) && ldflags = xcconfig['OTHER_LDFLAGS']
+        frameworks = []
+        ldflags.scan(/-framework "?([^\s"]+)"?/) do |framework|
+          frameworks << File.basename(framework[0]) + ".framework"
+        end
+        @config.vendor_project(PODS_ROOT, :xcode, {
+          :target => "Pods-#{TARGET_NAME}",
+          :products => frameworks,
+          :allow_empty_products => frameworks.empty?,
+        }.merge(@vendor_options))
+      end
+    end
+
+    def configure_project_static_libraries
       # TODO replace this all once Xcodeproj has the proper xcconfig parser.
       if (xcconfig = self.pods_xcconfig_hash) && ldflags = xcconfig['OTHER_LDFLAGS']
         lib_search_path_flags = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
@@ -252,6 +274,11 @@ module Motion::Project
 
     def post_install(&block)
       @podfile.post_install(&block)
+    end
+
+    def use_frameworks!(flag = true)
+      @use_frameworks = flag
+      @podfile.use_frameworks!(flag)
     end
 
     # Installation
