@@ -305,6 +305,7 @@ module Motion::Project
       pods_installer.update = update
       pods_installer.installation_options.integrate_targets = false
       pods_installer.install!
+      install_resources
       copy_cocoapods_env_and_prefix_headers
     end
 
@@ -387,7 +388,9 @@ module Motion::Project
         f.each_line do |line|
           if matched = line.match(/install_resource\s+(.*)/)
             path = (matched[1].strip)[1..-2]
-            path = File.join(".build", File.basename(path))
+            if path.include?("$PODS_CONFIGURATION_BUILD_DIR")
+              path = File.join(".build", File.basename(path))
+            end
             unless File.extname(path) == '.framework'
               resources << Pathname.new(@config.project_dir) + PODS_ROOT + path
             end
