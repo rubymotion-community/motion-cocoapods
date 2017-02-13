@@ -51,7 +51,10 @@ module Motion::Project
           exit 1
         end
         build_without_cocoapods(platform, opts)
+
+        # Install the resource which will be generated after built
         if App.config.pods.install_resources
+          # Build again that make sure install the resource into app bundle
           build_without_cocoapods(platform, opts)
         end
       end
