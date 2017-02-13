@@ -53,9 +53,12 @@ module Motion::Project
         build_without_cocoapods(platform, opts)
 
         # Install the resource which will be generated after built
-        if App.config.pods.install_resources
-          # Build again that make sure install the resource into app bundle
-          # build_without_cocoapods(platform, opts)
+        installed_resources = App.config.pods.install_resources
+        unless installed_resources.empty?
+          app_resources_dir = config.app_resources_dir(platform)
+          installed_resources.each do |path|
+            App.builder.copy_resource(path.to_s, File.join(app_resources_dir, path.basename.to_s))
+          end
         end
       end
 
@@ -317,13 +320,13 @@ module Motion::Project
     def install_resources
       FileUtils.mkdir_p(resources_dir)
 
-      installed = false
+      installed_resources = []
       resources.each do |file|
         begin
           dst = resources_dir + file.basename
           if file.exist? && !dst.exist?
             FileUtils.cp_r(file, resources_dir)
-            installed = true
+            installed_resources << dst
           end
         rescue ArgumentError => exc
           unless exc.message =~ /same file/
@@ -332,7 +335,7 @@ module Motion::Project
         end
       end
 
-      installed 
+      installed_resources 
     end
 
     PUBLIC_HEADERS_ROOT = File.join(PODS_ROOT, 'Headers/Public')
