@@ -51,6 +51,9 @@ module Motion::Project
           exit 1
         end
         build_without_cocoapods(platform, opts)
+        if App.config.pods.install_resources
+          build_without_cocoapods(platform, opts)
+        end
       end
 
       alias_method "build_without_cocoapods", "build"
@@ -297,27 +300,35 @@ module Motion::Project
     # installed pods changes.
     #
     def install!(update)
+      FileUtils.rm_rf(resources_dir)
+
       pods_installer.update = update
       pods_installer.installation_options.integrate_targets = false
       pods_installer.install!
-      install_resources
       copy_cocoapods_env_and_prefix_headers
     end
 
     # TODO this probably breaks in cases like resource bundles etc, need to test.
     #
     def install_resources
-      FileUtils.rm_rf(resources_dir)
       FileUtils.mkdir_p(resources_dir)
+
+      installed = false
       resources.each do |file|
         begin
-          FileUtils.cp_r(file, resources_dir) if file.exist?
+          dst = resources_dir + file.basename
+          if file.exist? && !dst.exist?
+            FileUtils.cp_r(file, resources_dir)
+            installed = true
+          end
         rescue ArgumentError => exc
           unless exc.message =~ /same file/
             raise
           end
         end
       end
+
+      installed 
     end
 
     PUBLIC_HEADERS_ROOT = File.join(PODS_ROOT, 'Headers/Public')
@@ -376,7 +387,7 @@ module Motion::Project
         f.each_line do |line|
           if matched = line.match(/install_resource\s+(.*)/)
             path = (matched[1].strip)[1..-2]
-            path.sub!("${BUILD_DIR}/${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}", ".build")
+            path = File.join(".build", File.basename(path))
             unless File.extname(path) == '.framework'
               resources << Pathname.new(@config.project_dir) + PODS_ROOT + path
             end
