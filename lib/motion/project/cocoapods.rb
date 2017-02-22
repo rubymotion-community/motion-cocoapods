@@ -110,6 +110,9 @@ module Motion::Project
     def configure_project
       @config.resources_dirs << resources_dir.to_s
 
+      frameworks = pre_built_frameworks
+      @config.embedded_frameworks = frameworks if frameworks
+
       if @use_frameworks
         configure_project_frameworks
       else
@@ -409,6 +412,24 @@ module Motion::Project
     def resources_dir
       Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
     end
+
+    def pre_built_frameworks
+      path = Pathname.new(@config.project_dir) + SUPPORT_FILES + "Pods-#{TARGET_NAME}-frameworks.sh"
+      return nil unless path.exist? 
+
+      frameworks = []
+      File.open(path) { |f|
+        f.each_line do |line|
+          if matched = line.match(/install_framework\s+(.*)/)
+            path = (matched[1].strip)[1..-2]
+            path = path.sub('${PODS_ROOT}', PODS_ROOT)
+            frameworks << File.join(@config.project_dir, path)
+          end
+        end
+      }
+      frameworks.uniq
+    end
+
   end
 end
 
