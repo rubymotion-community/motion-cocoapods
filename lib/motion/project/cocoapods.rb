@@ -360,13 +360,18 @@ module Motion::Project
       pods_libs
     end
 
+    def lib_search_path_flags
+      lib_search_paths
+      @lib_search_path_flags
+    end
+
     def lib_search_paths
       @lib_search_paths ||= begin
         xcconfig = pods_xcconfig_hash
-        flags = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
+        @lib_search_path_flags = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
 
         paths = []
-        flags = flags.split(/\s/).map do |path|
+        @lib_search_path_flags = @lib_search_path_flags.split(/\s/).map do |path|
           if path =~ /(\$\(inherited\))|(\$\{inherited\})|(\$CONFIGURATION_BUILD_DIR)|(\$PODS_CONFIGURATION_BUILD_DIR)/
             nil
           else
