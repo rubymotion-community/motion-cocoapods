@@ -110,8 +110,8 @@ module Motion::Project
     def configure_project
       @config.resources_dirs << resources_dir.to_s
 
-      frameworks = pre_built_frameworks
-      @config.embedded_frameworks = frameworks if frameworks
+      frameworks = installed_frameworks[:pre_built]
+      @config.embedded_frameworks += frameworks if frameworks
 
       if @use_frameworks
         configure_project_frameworks
@@ -124,12 +124,16 @@ module Motion::Project
       if (xcconfig = self.pods_xcconfig_hash) && ldflags = xcconfig['OTHER_LDFLAGS']
         frameworks = []
         ldflags.scan(/-framework "?([^\s"]+)"?/) do |framework|
-          frameworks << File.basename(framework[0]) + ".framework"
+          frameworks << File.basename(framework[0])
         end
+        @config.frameworks.concat(frameworks)
+
+        products = installed_frameworks[:build]
+        return unless products
+
         @config.vendor_project(PODS_ROOT, :xcode, {
           :target => "Pods-#{TARGET_NAME}",
-          :products => frameworks,
-          :allow_empty_products => frameworks.empty?,
+          :products => products.map { |x| File.basename(x) },
         }.merge(@vendor_options))
       end
     end
@@ -413,21 +417,32 @@ module Motion::Project
       Pathname.new(@config.project_dir) + PODS_ROOT + 'Resources'
     end
 
-    def pre_built_frameworks
-      path = Pathname.new(@config.project_dir) + SUPPORT_FILES + "Pods-#{TARGET_NAME}-frameworks.sh"
-      return nil unless path.exist? 
+    def installed_frameworks
+      return @installed_frameworks if @installed_frameworks
 
-      frameworks = []
+      @installed_frameworks = {}
+      path = Pathname.new(@config.project_dir) + SUPPORT_FILES + "Pods-#{TARGET_NAME}-frameworks.sh"
+      return @installed_frameworks unless path.exist? 
+
       File.open(path) { |f|
         f.each_line do |line|
           if matched = line.match(/install_framework\s+(.*)/)
             path = (matched[1].strip)[1..-2]
-            path = path.sub('${PODS_ROOT}', PODS_ROOT)
-            frameworks << File.join(@config.project_dir, path)
+            if path.include?('${PODS_ROOT}')
+              path = path.sub('${PODS_ROOT}', PODS_ROOT)
+              @installed_frameworks[:pre_built] ||= []
+              @installed_frameworks[:pre_built] << File.join(@config.project_dir, path)
+              @installed_frameworks[:pre_built].uniq!
+            elsif path.include?('$BUILT_PRODUCTS_DIR')
+              path = path.sub('$BUILT_PRODUCTS_DIR', "#{PODS_ROOT}/.build")
+              @installed_frameworks[:build] ||= []
+              @installed_frameworks[:build] << File.join(@config.project_dir, path)
+              @installed_frameworks[:build].uniq!
+            end
           end
         end
       }
-      frameworks.uniq
+      @installed_frameworks
     end
 
   end
