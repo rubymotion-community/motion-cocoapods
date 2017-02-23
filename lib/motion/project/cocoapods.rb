@@ -367,18 +367,6 @@ module Motion::Project
     def pods_libraries
       xcconfig = pods_xcconfig_hash
       ldflags = xcconfig['OTHER_LDFLAGS']
-      lib_search_path_flags = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
-
-      lib_search_paths = []
-      lib_search_path_flags = lib_search_path_flags.split(/\s/).map do |path|
-        if path =~ /(\$\(inherited\))|(\$\{inherited\})|(\$CONFIGURATION_BUILD_DIR)|(\$PODS_CONFIGURATION_BUILD_DIR)/
-          nil
-        else
-          path = path.gsub(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, File.join(@config.project_dir, PODS_ROOT))
-          lib_search_paths << path.gsub('"', '')
-          '-L ' << path
-        end
-      end.compact.join(' ')
 
       # Get the name of all static libraries that come pre-built with pods
       pre_built_static_libs = lib_search_paths.map do |path|
@@ -405,6 +393,27 @@ module Motion::Project
       @config.libs.uniq!
 
       pods_libs
+    end
+
+    def lib_search_paths
+      @lib_search_paths ||= begin
+        xcconfig = pods_xcconfig_hash
+        flags = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
+
+        paths = []
+        flags = flags.split(/\s/).map do |path|
+          if path =~ /(\$\(inherited\))|(\$\{inherited\})|(\$CONFIGURATION_BUILD_DIR)|(\$PODS_CONFIGURATION_BUILD_DIR)/
+            nil
+          else
+            path = path.gsub(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, File.join(@config.project_dir, PODS_ROOT))
+            paths << path.gsub('"', '')
+            '-L ' << path
+          end
+        end.compact.join(' ')
+        paths
+      end
+
+      @lib_search_paths
     end
 
     # Do not copy `.framework` bundles, these should be handled through RM's
