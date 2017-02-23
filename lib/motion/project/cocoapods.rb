@@ -148,8 +148,6 @@ module Motion::Project
         # Collect the Pod products
         pods_libs = pods_libraries
 
-        header_dirs = ['Headers/Public']
-
         # Initialize ':bridgesupport_cflags', in case the use
         @vendor_options[:bridgesupport_cflags] ||= ''
         @vendor_options[:bridgesupport_cflags] << " #{header_search_paths}"
@@ -199,7 +197,7 @@ module Motion::Project
 
         @config.vendor_project(PODS_ROOT, :xcode, {
           :target => "Pods-#{TARGET_NAME}",
-          :headers_dir => "{#{header_dirs.join(',')}}",
+          :headers_dir => "Headers/Public",
           :products => pods_libs.map { |lib_name| "lib#{lib_name}.a" },
           :allow_empty_products => pods_libs.empty?,
         }.merge(@vendor_options))
