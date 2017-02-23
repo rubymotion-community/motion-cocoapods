@@ -1,3 +1,4 @@
+# coding: utf-8
 # Copyright (c) 2012-2014, Laurent Sansonetti <lrz@hipbyte.com>
 # All rights reserved.
 #
@@ -128,6 +129,9 @@ module Motion::Project
         end
         @config.frameworks.concat(frameworks)
 
+        # Add libraries to @config.libs
+        pods_libraries
+
         products = installed_frameworks[:build]
         return unless products
 
@@ -141,43 +145,8 @@ module Motion::Project
     def configure_project_static_libraries
       # TODO replace this all once Xcodeproj has the proper xcconfig parser.
       if (xcconfig = self.pods_xcconfig_hash) && ldflags = xcconfig['OTHER_LDFLAGS']
-        lib_search_path_flags = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
-        lib_search_paths = []
-        lib_search_path_flags = lib_search_path_flags.split(/\s/).map do |path|
-          if path =~ /(\$\(inherited\))|(\$\{inherited\})|(\$CONFIGURATION_BUILD_DIR)|(\$PODS_CONFIGURATION_BUILD_DIR)/
-            nil
-          else
-            path = path.gsub(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, File.join(@config.project_dir, PODS_ROOT))
-            lib_search_paths << path.gsub('"', '')
-            '-L ' << path
-          end
-        end.compact.join(' ')
-
-        # Get the name of all static libraries that come pre-built with pods
-        pre_built_static_libs = lib_search_paths.map do |path|
-          Dir[File.join(path, '**/*.a')].map { |f| File.basename(f) }
-        end.flatten
-
         # Collect the Pod products
-        pods_libs = []
-
-        @config.libs.concat(ldflags.scan(/-l"?([^\s"]+)"?/).map { |m|
-          lib_name = m[0]
-          next if lib_name.nil?
-          if lib_name.start_with?('Pods-')
-            # For CocoaPods 0.37.x or below. This block is marked as deprecated.
-            pods_libs << lib_name
-            nil
-          elsif pre_built_static_libs.include?("lib#{lib_name}.a")
-            "#{lib_search_path_flags} -ObjC -l#{lib_name}"
-          elsif File.exist?("/usr/lib/lib#{lib_name}.dylib")
-            "/usr/lib/lib#{lib_name}.dylib"
-          else
-            pods_libs << lib_name
-            nil
-          end
-        }.compact)
-        @config.libs.uniq!
+        pods_libs = pods_libraries
 
         framework_search_paths = []
         if search_paths = xcconfig['FRAMEWORK_SEARCH_PATHS']
@@ -382,14 +351,60 @@ module Motion::Project
     end
 
     def pods_xcconfig
-      path = Pathname.new(@config.project_dir) + SUPPORT_FILES + "Pods-#{TARGET_NAME}.release.xcconfig"
-      Xcodeproj::Config.new(path) if path.exist?
+      @pods_xcconfig ||= begin
+        path = Pathname.new(@config.project_dir) + SUPPORT_FILES + "Pods-#{TARGET_NAME}.release.xcconfig"
+        Xcodeproj::Config.new(path) if path.exist?
+      end
+      @pods_xcconfig
     end
 
     def pods_xcconfig_hash
       if xcconfig = pods_xcconfig
         xcconfig.to_hash
       end
+    end
+
+    def pods_libraries
+      xcconfig = pods_xcconfig_hash
+      ldflags = xcconfig['OTHER_LDFLAGS']
+      lib_search_path_flags = xcconfig['LIBRARY_SEARCH_PATHS'] || ""
+
+      lib_search_paths = []
+      lib_search_path_flags = lib_search_path_flags.split(/\s/).map do |path|
+        if path =~ /(\$\(inherited\))|(\$\{inherited\})|(\$CONFIGURATION_BUILD_DIR)|(\$PODS_CONFIGURATION_BUILD_DIR)/
+          nil
+        else
+          path = path.gsub(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, File.join(@config.project_dir, PODS_ROOT))
+          lib_search_paths << path.gsub('"', '')
+          '-L ' << path
+        end
+      end.compact.join(' ')
+
+      # Get the name of all static libraries that come pre-built with pods
+      pre_built_static_libs = lib_search_paths.map do |path|
+        Dir[File.join(path, '**/*.a')].map { |f| File.basename(f) }
+      end.flatten
+
+      pods_libs = []
+      @config.libs.concat(ldflags.scan(/-l"?([^\s"]+)"?/).map { |m|
+        lib_name = m[0]
+        next if lib_name.nil?
+        if lib_name.start_with?('Pods-')
+          # For CocoaPods 0.37.x or below. This block is marked as deprecated.
+          pods_libs << lib_name
+          nil
+        elsif pre_built_static_libs.include?("lib#{lib_name}.a")
+          "#{lib_search_path_flags} -ObjC -l#{lib_name}"
+        elsif File.exist?("/usr/lib/lib#{lib_name}.dylib")
+          "/usr/lib/lib#{lib_name}.dylib"
+        else
+          pods_libs << lib_name
+          nil
+        end
+      }.compact)
+      @config.libs.uniq!
+
+      pods_libs
     end
 
     # Do not copy `.framework` bundles, these should be handled through RM's
