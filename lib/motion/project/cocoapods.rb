@@ -150,24 +150,6 @@ module Motion::Project
 
         header_dirs = ['Headers/Public']
 
-        # We want to set the proper header search paths otherwise we might generate incorrect bridgesupport
-        header_search_paths = []
-        if search_paths = xcconfig['HEADER_SEARCH_PATHS']
-          search_paths = search_paths.strip
-          unless search_paths.empty?
-            search_paths.scan(/"([^"]+)"/) do |search_path|
-              path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
-              header_search_paths << File.expand_path(path) if path
-            end
-            # If we couldn't parse any search paths, then presumably nothing was properly quoted, so
-            # fallback to just assuming the whole value is one path.
-            if header_search_paths.empty?
-              path = search_paths.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
-              header_search_paths << File.expand_path(path) if path
-            end
-          end
-        end
-        header_search_paths = header_search_paths.map { |p| "-I'#{p}'" }.join(' ')
         # Initialize ':bridgesupport_cflags', in case the use
         @vendor_options[:bridgesupport_cflags] ||= ''
         @vendor_options[:bridgesupport_cflags] << " #{header_search_paths}"
@@ -423,6 +405,32 @@ module Motion::Project
       end
 
       @framework_search_paths
+    end
+
+    def header_search_paths
+      @header_search_paths ||= begin
+        xcconfig = pods_xcconfig_hash
+
+        paths = []
+        if search_paths = xcconfig['HEADER_SEARCH_PATHS']
+          search_paths = search_paths.strip
+          unless search_paths.empty?
+            search_paths.scan(/"([^"]+)"/) do |search_path|
+              path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
+              paths << File.expand_path(path) if path
+            end
+            # If we couldn't parse any search paths, then presumably nothing was properly quoted, so
+            # fallback to just assuming the whole value is one path.
+            if paths.empty?
+              path = search_paths.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
+              paths << File.expand_path(path) if path
+            end
+          end
+        end
+        paths.map { |p| "-I'#{p}'" }.join(' ')
+      end
+
+      @header_search_paths
     end
 
     # Do not copy `.framework` bundles, these should be handled through RM's
