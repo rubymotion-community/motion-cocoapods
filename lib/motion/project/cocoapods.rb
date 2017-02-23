@@ -148,23 +148,6 @@ module Motion::Project
         # Collect the Pod products
         pods_libs = pods_libraries
 
-        framework_search_paths = []
-        if search_paths = xcconfig['FRAMEWORK_SEARCH_PATHS']
-          search_paths = search_paths.strip
-          unless search_paths.empty?
-            search_paths.scan(/"([^"]+)"/) do |search_path|
-              path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
-              framework_search_paths << path if path
-            end
-            # If we couldn't parse any search paths, then presumably nothing was properly quoted, so
-            # fallback to just assuming the whole value is one path.
-            if framework_search_paths.empty?
-              path = search_paths.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
-              framework_search_paths << path if path
-            end
-          end
-        end
-
         header_dirs = ['Headers/Public']
 
         # We want to set the proper header search paths otherwise we might generate incorrect bridgesupport
@@ -414,6 +397,32 @@ module Motion::Project
       end
 
       @lib_search_paths
+    end
+
+    def framework_search_paths
+      @framework_search_paths ||= begin
+        xcconfig = pods_xcconfig_hash
+
+        paths = []
+        if search_paths = xcconfig['FRAMEWORK_SEARCH_PATHS']
+          search_paths = search_paths.strip
+          unless search_paths.empty?
+            search_paths.scan(/"([^"]+)"/) do |search_path|
+              path = search_path.first.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
+              paths << path if path
+            end
+            # If we couldn't parse any search paths, then presumably nothing was properly quoted, so
+            # fallback to just assuming the whole value is one path.
+            if paths.empty?
+              path = search_paths.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
+              paths << path if path
+            end
+          end
+        end
+        paths
+      end
+
+      @framework_search_paths
     end
 
     # Do not copy `.framework` bundles, these should be handled through RM's
