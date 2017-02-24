@@ -322,8 +322,10 @@ module Motion::Project
 
     def pods_frameworks(frameworks)
       frameworks = frameworks.dup
-      installed_frameworks[:pre_built].each do |pre_built|
-        frameworks.delete(File.basename(pre_built, ".framework"))
+      if installed_frameworks[:pre_built]
+        installed_frameworks[:pre_built].each do |pre_built|
+          frameworks.delete(File.basename(pre_built, ".framework"))
+        end
       end
 
       case @config.deploy_platform
