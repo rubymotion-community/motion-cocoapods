@@ -137,7 +137,6 @@ module Motion::Project
 
         @config.vendor_project(PODS_ROOT, :xcode, {
           :target => "Pods-#{TARGET_NAME}",
-          :products => products.map { |x| File.basename(x) },
         }.merge(@vendor_options))
       end
     end
