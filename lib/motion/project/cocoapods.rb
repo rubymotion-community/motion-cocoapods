@@ -127,17 +127,30 @@ module Motion::Project
         pods_libraries
 
         frameworks = ldflags.scan(/-framework\s+"?([^\s"]+)"?/).map { |m| m[0] }
-        pods_frameworks(frameworks)
+        static_frameworks = pods_frameworks(frameworks)
+        static_frameworks_paths = static_frameworks_paths(static_frameworks)
+        search_path = static_frameworks_paths.inject("") { |s, path|
+          s += " -I'#{path}' -I'#{path}/Headers'"
+        }
+        @vendor_options[:bridgesupport_cflags] ||= ''
+        @vendor_options[:bridgesupport_cflags] << " #{header_search_paths} #{search_path}"
 
         @config.weak_frameworks.concat(ldflags.scan(/-weak_framework\s+([^\s]+)/).map { |m| m[0] })
         @config.weak_frameworks.uniq!
 
-        products = installed_frameworks[:build]
-        return unless products
-
-        @config.vendor_project(PODS_ROOT, :xcode, {
+        vendors = @config.vendor_project(PODS_ROOT, :xcode, {
           :target => "Pods-#{TARGET_NAME}",
         }.merge(@vendor_options))
+
+        vendor = vendors.last
+        if vendor.respond_to?(:generate_bridgesupport)
+          static_frameworks_paths.each do |path|
+            path = File.expand_path(path)
+            bs_file = File.join(Builder.common_build_dir, "#{path}.bridgesupport")
+            headers = Dir.glob(File.join(path, '**{,/*/**}/*.h'))
+            vendor.generate_bridgesupport(@config.deploy_platform, bs_file, headers)
+          end
+        end
       end
     end
 
@@ -328,6 +341,7 @@ module Motion::Project
         end
       end
 
+      static_frameworks = []
       case @config.deploy_platform
       when 'MacOSX'
         @config.framework_search_paths.concat(framework_search_paths)
@@ -355,6 +369,7 @@ module Motion::Project
             path = File.join(framework_search_path, "#{framework}.framework")
             if File.exist?(path)
               @config.libs << "-ObjC '#{File.join(path, framework)}'"
+              static_frameworks << framework
               true
             else
               false
@@ -365,6 +380,8 @@ module Motion::Project
 
       @config.frameworks.concat(frameworks)
       @config.frameworks.uniq!
+
+      static_frameworks
     end        
 
     def lib_search_path_flags
@@ -443,6 +460,17 @@ module Motion::Project
       end
 
       @header_search_paths
+    end
+
+    def static_frameworks_paths(frameworks)
+      paths = []
+      framework_search_paths.each do |framework_search_path|
+        paths += Dir.glob("#{framework_search_path}/*.framework")
+      end
+      paths.keep_if { |path| 
+        frameworks.include?(File.basename(path, ".framework"))
+      }
+      paths
     end
 
     # Do not copy `.framework` bundles, these should be handled through RM's
