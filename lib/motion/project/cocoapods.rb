@@ -321,6 +321,11 @@ module Motion::Project
     end
 
     def pods_frameworks(frameworks)
+      frameworks = frameworks.dup
+      installed_frameworks[:pre_built].each do |pre_built|
+        frameworks.delete(File.basename(pre_built, ".framework"))
+      end
+
       case @config.deploy_platform
       when 'MacOSX'
         @config.framework_search_paths.concat(framework_search_paths)
