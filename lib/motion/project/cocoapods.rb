@@ -123,14 +123,11 @@ module Motion::Project
 
     def configure_project_frameworks
       if (xcconfig = self.pods_xcconfig_hash) && ldflags = xcconfig['OTHER_LDFLAGS']
-        frameworks = []
-        ldflags.scan(/-framework "?([^\s"]+)"?/) do |framework|
-          frameworks << File.basename(framework[0])
-        end
-        @config.frameworks.concat(frameworks)
-
         # Add libraries to @config.libs
         pods_libraries
+
+        frameworks = ldflags.scan(/-framework\s+"?([^\s"]+)"?/).map { |m| m[0] }
+        pods_frameworks(frameworks)
 
         products = installed_frameworks[:build]
         return unless products
@@ -153,44 +150,7 @@ module Motion::Project
         @vendor_options[:bridgesupport_cflags] << " #{header_search_paths}"
 
         frameworks = ldflags.scan(/-framework\s+"?([^\s"]+)"?/).map { |m| m[0] }
-
-        case @config.deploy_platform
-        when 'MacOSX'
-          @config.framework_search_paths.concat(framework_search_paths)
-          @config.framework_search_paths.uniq!
-          framework_search_paths.each do |framework_search_path|
-            frameworks.reject! do |framework|
-              path = File.join(framework_search_path, "#{framework}.framework")
-              if File.exist?(path)
-                @config.embedded_frameworks << path
-                true
-              else
-                false
-              end
-            end
-          end
-        when 'iPhoneOS', 'AppleTVOS', 'WatchOS'
-          pods_root = cp_config.installation_root + 'Pods'
-          # If we would really specify these as ‘frameworks’ then the linker
-          # would not link the archive into the application, because it does not
-          # see any references to any of the symbols in the archive. Treating it
-          # as a static library (which it is) with `-ObjC` fixes this.
-          #
-          framework_search_paths.each do |framework_search_path|
-            frameworks.reject! do |framework|
-              path = File.join(framework_search_path, "#{framework}.framework")
-              if File.exist?(path)
-                @config.libs << "-ObjC '#{File.join(path, framework)}'"
-                true
-              else
-                false
-              end
-            end
-          end
-        end
-
-        @config.frameworks.concat(frameworks)
-        @config.frameworks.uniq!
+        pods_frameworks(frameworks)
 
         @config.weak_frameworks.concat(ldflags.scan(/-weak_framework\s+([^\s]+)/).map { |m| m[0] })
         @config.weak_frameworks.uniq!
@@ -357,6 +317,46 @@ module Motion::Project
 
       pods_libs
     end
+
+    def pods_frameworks(frameworks)
+      case @config.deploy_platform
+      when 'MacOSX'
+        @config.framework_search_paths.concat(framework_search_paths)
+        @config.framework_search_paths.uniq!
+        framework_search_paths.each do |framework_search_path|
+          frameworks.reject! do |framework|
+            path = File.join(framework_search_path, "#{framework}.framework")
+            if File.exist?(path)
+              @config.embedded_frameworks << path
+              true
+            else
+              false
+            end
+          end
+        end
+      when 'iPhoneOS', 'AppleTVOS', 'WatchOS'
+        pods_root = cp_config.installation_root + 'Pods'
+        # If we would really specify these as ‘frameworks’ then the linker
+        # would not link the archive into the application, because it does not
+        # see any references to any of the symbols in the archive. Treating it
+        # as a static library (which it is) with `-ObjC` fixes this.
+        #
+        framework_search_paths.each do |framework_search_path|
+          frameworks.reject! do |framework|
+            path = File.join(framework_search_path, "#{framework}.framework")
+            if File.exist?(path)
+              @config.libs << "-ObjC '#{File.join(path, framework)}'"
+              true
+            else
+              false
+            end
+          end
+        end
+      end
+
+      @config.frameworks.concat(frameworks)
+      @config.frameworks.uniq!
+    end        
 
     def lib_search_path_flags
       lib_search_paths
