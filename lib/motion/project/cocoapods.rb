@@ -475,18 +475,19 @@ module Motion::Project
       path = Pathname.new(@config.project_dir) + SUPPORT_FILES + "Pods-#{TARGET_NAME}-frameworks.sh"
       return @installed_frameworks unless path.exist? 
 
+      @installed_frameworks[:pre_built] = []
+      @installed_frameworks[:build] = []
+
       File.open(path) { |f|
         f.each_line do |line|
           if matched = line.match(/install_framework\s+(.*)/)
             path = (matched[1].strip)[1..-2]
             if path.include?('${PODS_ROOT}')
               path = path.sub('${PODS_ROOT}', PODS_ROOT)
-              @installed_frameworks[:pre_built] ||= []
               @installed_frameworks[:pre_built] << File.join(@config.project_dir, path)
               @installed_frameworks[:pre_built].uniq!
             elsif path.include?('$BUILT_PRODUCTS_DIR')
               path = path.sub('$BUILT_PRODUCTS_DIR', "#{PODS_ROOT}/.build")
-              @installed_frameworks[:build] ||= []
               @installed_frameworks[:build] << File.join(@config.project_dir, path)
               @installed_frameworks[:build].uniq!
             end
