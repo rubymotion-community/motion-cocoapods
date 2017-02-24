@@ -127,6 +127,10 @@ module Motion::Project
         pods_libraries
 
         frameworks = ldflags.scan(/-framework\s+"?([^\s"]+)"?/).map { |m| m[0] }
+        if build_frameworks = installed_frameworks[:build]
+          build_frameworks = build_frameworks.map { |path| File.basename(path, ".framework") }
+          frameworks.delete_if { |f| build_frameworks.include?(f) }
+        end
         static_frameworks = pods_frameworks(frameworks)
         static_frameworks_paths = static_frameworks_paths(static_frameworks)
         search_path = static_frameworks_paths.inject("") { |s, path|
