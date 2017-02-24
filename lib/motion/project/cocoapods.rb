@@ -129,6 +129,9 @@ module Motion::Project
         frameworks = ldflags.scan(/-framework\s+"?([^\s"]+)"?/).map { |m| m[0] }
         pods_frameworks(frameworks)
 
+        @config.weak_frameworks.concat(ldflags.scan(/-weak_framework\s+([^\s]+)/).map { |m| m[0] })
+        @config.weak_frameworks.uniq!
+
         products = installed_frameworks[:build]
         return unless products
 
