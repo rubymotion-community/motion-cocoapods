@@ -126,6 +126,10 @@ module Motion::Project
         # Add libraries to @config.libs
         pods_libraries
 
+        # Initialize ':bridgesupport_cflags', in case the use
+        @vendor_options[:bridgesupport_cflags] ||= ''
+        @vendor_options[:bridgesupport_cflags] << " #{header_search_paths}"
+
         frameworks = ldflags.scan(/-framework\s+"?([^\s"]+)"?/).map { |m| m[0] }
         pods_frameworks(frameworks)
 
