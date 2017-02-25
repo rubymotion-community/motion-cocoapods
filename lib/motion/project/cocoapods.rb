@@ -161,7 +161,7 @@ module Motion::Project
             @config.vendor_project(PODS_ROOT, :bridgesupport, {
               :bs_file => bs_file,
               :headers => headers,
-            })
+            }.merge(@vendor_options))
           end
         end
       end
