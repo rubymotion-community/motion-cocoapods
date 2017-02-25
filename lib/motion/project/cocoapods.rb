@@ -113,7 +113,10 @@ module Motion::Project
         @config.resources_dirs << resources_dir.to_s
 
         frameworks = installed_frameworks[:pre_built]
-        @config.embedded_frameworks += frameworks if frameworks
+        if frameworks
+          @config.embedded_frameworks += frameworks
+          @config.embedded_frameworks.uniq!
+        end
 
         if @use_frameworks
           configure_project_frameworks
