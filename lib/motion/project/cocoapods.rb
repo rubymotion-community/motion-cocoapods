@@ -142,7 +142,7 @@ module Motion::Project
           s += " -I'#{path}' -I'#{path}/Headers'"
         }
         @vendor_options[:bridgesupport_cflags] ||= ''
-        @vendor_options[:bridgesupport_cflags] << " #{header_search_path} #{search_path}"
+        @vendor_options[:bridgesupport_cflags] << " #{header_search_path} #{framework_search_path} #{search_path}"
 
         @config.weak_frameworks.concat(ldflags.scan(/-weak_framework\s+([^\s]+)/).map { |m| m[0] })
         @config.weak_frameworks.uniq!
@@ -171,7 +171,7 @@ module Motion::Project
 
         # Initialize ':bridgesupport_cflags', in case the use
         @vendor_options[:bridgesupport_cflags] ||= ''
-        @vendor_options[:bridgesupport_cflags] << " #{header_search_path}"
+        @vendor_options[:bridgesupport_cflags] << " #{header_search_path} #{framework_search_path}"
 
         frameworks = ldflags.scan(/-framework\s+"?([^\s"]+)"?/).map { |m| m[0] }
         pods_frameworks(frameworks)
@@ -445,6 +445,10 @@ module Motion::Project
       end
 
       @framework_search_paths
+    end
+
+    def framework_search_path
+      framework_search_paths.map { |p| "-F'#{File.expand_path(File.join(p, '..'))}'" }.join(' ')
     end
 
     def header_search_paths
