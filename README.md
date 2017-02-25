@@ -41,6 +41,17 @@ gem 'motion-cocoapods'
    end
    ```
 
+   You can use `use_frameworks!` to install pods as frameworks.
+   ```ruby
+   Motion::Project::App.setup do |app|
+     # ...
+     app.pods do
+       use_frameworks!
+       pod 'AFNetworking'
+     end
+   end
+   ```
+
 3. If this is the first time using CocoaPods on your machine, you'll need to
    let CocoaPods do some setup work with the following command:
 
