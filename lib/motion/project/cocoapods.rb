@@ -109,15 +109,17 @@ module Motion::Project
     # Adds the Pods project to the RubyMotion config as a vendored project and
     #
     def configure_project
-      @config.resources_dirs << resources_dir.to_s
+      if self.pods_xcconfig_hash
+        @config.resources_dirs << resources_dir.to_s
 
-      frameworks = installed_frameworks[:pre_built]
-      @config.embedded_frameworks += frameworks if frameworks
+        frameworks = installed_frameworks[:pre_built]
+        @config.embedded_frameworks += frameworks if frameworks
 
-      if @use_frameworks
-        configure_project_frameworks
-      else
-        configure_project_static_libraries
+        if @use_frameworks
+          configure_project_frameworks
+        else
+          configure_project_static_libraries
+        end
       end
     end
 
