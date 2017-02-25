@@ -360,6 +360,7 @@ module Motion::Project
             path = File.join(framework_search_path, "#{framework}.framework")
             if File.exist?(path)
               @config.embedded_frameworks << path
+              @config.embedded_frameworks.uniq!
               true
             else
               false
@@ -378,6 +379,7 @@ module Motion::Project
             path = File.join(framework_search_path, "#{framework}.framework")
             if File.exist?(path)
               @config.libs << "-ObjC '#{File.join(path, framework)}'"
+              @config.libs.uniq!
               static_frameworks << framework
               true
             else
