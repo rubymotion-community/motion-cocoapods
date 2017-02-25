@@ -159,7 +159,7 @@ module Motion::Project
             bs_file = File.join(Builder.common_build_dir, "#{path}.bridgesupport")
             headers = Dir.glob(File.join(path, '**{,/*/**}/*.h'))
             @config.vendor_project(PODS_ROOT, :bridgesupport, {
-              :target => bs_file,
+              :bs_file => bs_file,
               :headers => headers,
             })
           end
