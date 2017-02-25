@@ -262,7 +262,7 @@ module Motion::Project
         end
       end
 
-      installed_resources 
+      installed_resources
     end
 
     PUBLIC_HEADERS_ROOT = File.join(PODS_ROOT, 'Headers/Public')
@@ -397,7 +397,7 @@ module Motion::Project
       @config.frameworks.uniq!
 
       static_frameworks
-    end        
+    end
 
     def lib_search_path_flags
       lib_search_paths
@@ -489,7 +489,7 @@ module Motion::Project
       framework_search_paths.each do |framework_search_path|
         paths += Dir.glob("#{framework_search_path}/*.framework")
       end
-      paths.keep_if { |path| 
+      paths.keep_if { |path|
         frameworks.include?(File.basename(path, ".framework"))
       }
       paths
@@ -525,7 +525,7 @@ module Motion::Project
 
       @installed_frameworks = {}
       path = Pathname.new(@config.project_dir) + SUPPORT_FILES + "Pods-#{TARGET_NAME}-frameworks.sh"
-      return @installed_frameworks unless path.exist? 
+      return @installed_frameworks unless path.exist?
 
       @installed_frameworks[:pre_built] = []
       @installed_frameworks[:build] = []
