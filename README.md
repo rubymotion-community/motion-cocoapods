@@ -41,7 +41,8 @@ gem 'motion-cocoapods'
    end
    ```
 
-   You can use `use_frameworks!` to install pods as frameworks.
+   You can use `use_frameworks!` to install pods as frameworks (**NOTE** This feature requires RubyMotion 4.18+).
+
    ```ruby
    Motion::Project::App.setup do |app|
      # ...
