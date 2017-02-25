@@ -412,7 +412,6 @@ module Motion::Project
           else
             path = path.gsub(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, File.join(@config.project_dir, PODS_ROOT))
             paths << path.gsub('"', '')
-            '-L ' << path
           end
         end.compact.join(' ')
         paths
