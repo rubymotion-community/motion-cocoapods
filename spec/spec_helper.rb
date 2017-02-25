@@ -38,3 +38,12 @@ module SpecHelper
   end
 end
 
+module Motion; module Project;
+  class Vendor
+    attr_reader :opts
+  end
+
+  class Config
+    attr_writer :project_dir
+  end
+end; end

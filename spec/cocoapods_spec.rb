@@ -1,15 +1,5 @@
 require File.expand_path('../spec_helper', __FILE__)
 
-module Motion; module Project;
-  class Vendor
-    attr_reader :opts
-  end
-
-  class Config
-    attr_writer :project_dir
-  end
-end; end
-
 describe "motion-cocoapods" do
   extend SpecHelper::TemporaryDirectory
 
