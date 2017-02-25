@@ -153,12 +153,15 @@ module Motion::Project
         }.merge(@vendor_options))
 
         vendor = vendors.last
-        if vendor.respond_to?(:generate_bridgesupport)
+        if vendor.respond_to?(:build_bridgesupport)
           static_frameworks_paths.each do |path|
             path = File.expand_path(path)
             bs_file = File.join(Builder.common_build_dir, "#{path}.bridgesupport")
             headers = Dir.glob(File.join(path, '**{,/*/**}/*.h'))
-            vendor.generate_bridgesupport(@config.deploy_platform, bs_file, headers)
+            @config.vendor_project(PODS_ROOT, :bridgesupport, {
+              :target => bs_file,
+              :headers => headers,
+            })
           end
         end
       end
