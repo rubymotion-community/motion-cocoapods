@@ -372,7 +372,6 @@ module Motion::Project
           end
         end
       when 'iPhoneOS', 'AppleTVOS', 'WatchOS'
-        pods_root = cp_config.installation_root + 'Pods'
         # If we would really specify these as ‘frameworks’ then the linker
         # would not link the archive into the application, because it does not
         # see any references to any of the symbols in the archive. Treating it
