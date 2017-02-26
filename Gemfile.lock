@@ -54,7 +54,6 @@ GEM
     fuzzy_match (2.0.4)
     gh_inspector (1.0.3)
     i18n (0.8.1)
-    json (2.0.3)
     minitest (5.10.1)
     molinillo (0.5.6)
     nanaimo (0.2.3)
@@ -79,7 +78,6 @@ DEPENDENCIES
   bacon
   cocoapods
   cocoapods-core
-  json (>= 2.0)
   motion-cocoapods!
   rake
   xcodeproj
