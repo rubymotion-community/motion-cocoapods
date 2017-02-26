@@ -56,16 +56,6 @@ describe "use_frameworks!" do
     @config.libs.include?(lib).should == true
   end
 
-  # To generate bridgesupport, it require RubyMotion 4.18+
-  # it "should generate bridgesupport file of prebuilt static framework" do
-  #   path = File.expand_path(File.join(
-  #     '~/Library/RubyMotion/build',
-  #     File.expand_path(@config.project_dir),
-  #     "vendor/Pods/Google-Mobile-Ads-SDK/Frameworks/frameworks/GoogleMobileAds.framework.bridgesupport"
-  #   ))
-  #   Pathname.new(path).should.exist
-  # end
-
   it "installs the Pods to vendor/Pods" do
     (Pathname.new(@config.project_dir) + 'vendor/Pods/google-cast-sdk').should.exist
     (Pathname.new(@config.project_dir) + 'vendor/Pods/Google-Mobile-Ads-SDK').should.exist
