@@ -150,6 +150,7 @@ module Motion::Project
         vendors = @config.vendor_project(PODS_ROOT, :xcode, {
           :target => "Pods-#{TARGET_NAME}",
           :products => build_frameworks.map { |name| "#{name}.framework" },
+          :allow_empty_products => build_frameworks.empty?,
         }.merge(@vendor_options))
 
         vendor = vendors.last
