@@ -204,6 +204,10 @@ module Motion::Project
       @podfile.pod(*name_and_version_requirements, &block)
     end
 
+    def podspec(options = nil, &block)
+      @podfile.podspec(options, &block)
+    end
+
     # Deprecated.
     def dependency(*name_and_version_requirements, &block)
       @podfile.dependency(*name_and_version_requirements, &block)
