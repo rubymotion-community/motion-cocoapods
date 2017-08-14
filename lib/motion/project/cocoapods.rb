@@ -400,8 +400,7 @@ module Motion::Project
     end
 
     def lib_search_path_flags
-      lib_search_paths
-      @lib_search_path_flags
+      lib_search_paths.map { |p| "-L'#{p}'" }.join(' ')
     end
 
     def lib_search_paths
