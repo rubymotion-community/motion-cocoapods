@@ -503,6 +503,9 @@ module Motion::Project
         f.each_line do |line|
           if matched = line.match(/install_resource\s+(.*)/)
             path = (matched[1].strip)[1..-2]
+            if path.start_with?('${PODS_ROOT}')
+              path = path.sub('${PODS_ROOT}/', '')
+            end
             if path.include?("$PODS_CONFIGURATION_BUILD_DIR")
               path = File.join(".build", File.basename(path))
             end
