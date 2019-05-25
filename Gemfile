@@ -2,9 +2,8 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'xcodeproj'      #, :git => 'git://github.com/CocoaPods/Xcodeproj.git'
-gem 'cocoapods'      #, :git => 'git://github.com/CocoaPods/CocoaPods.git'
-gem 'cocoapods-core' #, :git => 'git://github.com/CocoaPods/Core.git'
+gem 'xcodeproj', '~> 1.4'
+gem 'cocoapods', '1.6.2'
 
 gem 'bacon'
 gem 'rake'
