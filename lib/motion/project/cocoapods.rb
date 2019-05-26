@@ -95,9 +95,11 @@ module Motion::Project
         App.fail "Unknown CocoaPods platform: #{@config.deploy_platform}"
       end
 
-      @podfile = Pod::Podfile.new(Pathname.new(Rake.original_dir) + 'Rakefile') {}
-      @podfile.platform(platform, config.deployment_target)
-      @podfile.target(TARGET_NAME)
+      @podfile = Pod::Podfile.new(Pathname.new(Rake.original_dir) + 'Rakefile') do
+        platform(platform, config.deployment_target)
+        target(TARGET_NAME)
+        install!('cocoapods', :integrate_targets => false)
+      end
       cp_config.podfile = @podfile
       cp_config.installation_root = Pathname.new(File.expand_path(config.project_dir)) + 'vendor'
 
@@ -237,7 +239,6 @@ module Motion::Project
       FileUtils.rm_rf(resources_dir)
 
       pods_installer.update = update
-      pods_installer.installation_options.integrate_targets = false
       pods_installer.install!
       symlink_framework_headers
       install_resources
@@ -317,7 +318,6 @@ module Motion::Project
     end
 
     def analyzer
-      cp_config = Pod::Config.instance
       Pod::Installer::Analyzer.new(cp_config.sandbox, @podfile, cp_config.lockfile)
     end
 
