@@ -239,8 +239,29 @@ module Motion::Project
       pods_installer.update = update
       pods_installer.installation_options.integrate_targets = false
       pods_installer.install!
+      symlink_framework_headers
       install_resources
       copy_cocoapods_env_and_prefix_headers
+    end
+
+    PUBLIC_HEADERS_ROOT = File.join(PODS_ROOT, 'Headers/Public')
+
+    def framework_public_headers_dir(framework_path)
+      framework_name = framework_path[%r{/([^/]*)\.framework/}, 1]
+      File.join(@config.project_dir, PUBLIC_HEADERS_ROOT, framework_name)
+    end
+
+    def symlink_framework_headers
+      framework_search_paths.each do |framework_search_path|
+        Dir.glob("#{framework_search_path}/*.framework/Headers").each do |framework_path|
+          FileUtils.mkdir_p(framework_public_headers_dir(framework_path))
+
+          Dir.glob("#{framework_path}/*.h").each do |header_path|
+            relative_path = "../../..#{header_path.sub(File.join(@config.project_dir, PODS_ROOT), '')}"
+            File.symlink(relative_path, "#{framework_public_headers_dir(framework_path)}/#{File.basename(header_path)}")
+          end
+        end
+      end
     end
 
     # TODO this probably breaks in cases like resource bundles etc, need to test.
@@ -265,8 +286,6 @@ module Motion::Project
 
       installed_resources
     end
-
-    PUBLIC_HEADERS_ROOT = File.join(PODS_ROOT, 'Headers/Public')
 
     def copy_cocoapods_env_and_prefix_headers
       headers = Dir.glob(["#{PODS_ROOT}/*.h", "#{PODS_ROOT}/*.pch", "#{PODS_ROOT}/Target Support Files/**/*.h", "#{PODS_ROOT}/Target Support Files/**/*.pch"])
@@ -471,6 +490,11 @@ module Motion::Project
               path = search_paths.gsub!(/(\$\(PODS_ROOT\))|(\$\{PODS_ROOT\})/, "#{@config.project_dir}/#{PODS_ROOT}")
               paths << File.expand_path(path) if path
             end
+          end
+        end
+        framework_search_paths.each do |framework_search_path|
+          Dir.glob("#{framework_search_path}/*.framework/Headers").each do |framework_path|
+            paths << framework_public_headers_dir(framework_path)
           end
         end
         paths
