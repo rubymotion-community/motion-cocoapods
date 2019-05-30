@@ -1,13 +1,4 @@
-desc "Build the gem"
-task :gem do
-  sh "bundle exec gem build motion-cocoapods.gemspec"
-  sh "mkdir -p pkg"
-  sh "mv *.gem pkg/"
-end
-
-task :clean do
-  FileUtils.rm_rf 'pkg'
-end
+require 'bundler/gem_tasks'
 
 desc "Install dependencies needed for development"
 task :bootstrap do
