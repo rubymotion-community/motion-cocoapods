@@ -19,5 +19,5 @@ Gem::Specification.new do |spec|
   spec.license     = 'BSD-2-Clause'
   spec.files       = Dir.glob('lib/**/*.rb') << 'README.md' << 'LICENSE'
 
-  spec.add_runtime_dependency 'cocoapods', '>= 1.6.0', '<= 1.8.0'
+  spec.add_runtime_dependency 'cocoapods', '>= 1.6.0', '<= 1.10.0'
 end
