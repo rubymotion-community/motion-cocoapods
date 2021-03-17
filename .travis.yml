@@ -1,9 +1,10 @@
 language: objective-c
 rvm:
-  - 2.2
-osx_image: xcode8
+  - 2.7.2
+osx_image: xcode12
 before_install:
   - (ruby --version)
+  - gem install cocoapods -N
 script:
   - pod repo update --silent
   - bundle exec rake spec
