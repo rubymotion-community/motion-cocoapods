@@ -5,6 +5,7 @@ osx_image: xcode12
 before_install:
   - (ruby --version)
   - gem install cocoapods -N
+  - bundle install
 script:
   - pod repo update --silent
   - bundle exec rake spec
