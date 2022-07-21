@@ -65,7 +65,7 @@ GEM
     rake (13.0.3)
     ruby-macho (1.4.0)
     thread_safe (0.3.6)
-    tzinfo (1.2.9)
+    tzinfo (1.2.10)
       thread_safe (~> 0.1)
     xcodeproj (1.19.0)
       CFPropertyList (>= 2.3.3, < 4.0)
