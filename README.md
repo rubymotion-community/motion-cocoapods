@@ -84,7 +84,7 @@ $ [bundle exec] rake pod:update
 ## Options
 
 If necessary, you can pass `vendor_project` options to the `pods` configuration
-method. These options are described [here](http://www.rubymotion.com/developer-center/guides/project-management/#_vendoring_3rd_party_libraries).
+method. These options are described [here](http://www.rubymotion.com/developers/guides/manuals/cocoa/project-management/#:~:text=bar.rb.-,2.6.%20Vendoring%203rd%2DParty%20Libraries).
 For instance, to only generate BridgeSupport metadata for a single pod, which
 might be needed if a dependency that you’re not using directly is causing issues
 (such as C++ headers), you can specify that like so:
