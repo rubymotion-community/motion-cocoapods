@@ -577,6 +577,12 @@ module Motion::Project
       @installed_frameworks
     end
 
+    private
+
+    def current_target_definition
+      @podfile.instance_eval { current_target_definition }
+    end
+
   end
 end
 
